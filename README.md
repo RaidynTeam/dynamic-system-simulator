@@ -5,7 +5,7 @@ Lab 1 için dört kişinin geliştireceği Python proje iskeleti.
 ## Durum
 
 M1: ortak veri yapıları, parametre doğrulaması ve üç Case sınıflandırması hazırdır.
-Analitik çözüm, Euler, RK4, arayüz ve grafik fonksiyonları henüz uygulanmadı.
+M2: Case 2 kritik sönüm analitik y(t) ve v(t) çözümü hazırdır. Case 1/3, Euler, RK4, arayüz ve grafik fonksiyonları henüz uygulanmadı.
 Çözücü ve arayüz dosyaları sonraki aşamalar için boştur; şu anda çalışan bir GUI yoktur.
 Lab modeli ve teslim koşulları `docs/lab-requirements.md` içinde kaynak PDF ile eşleştirilmiştir. Ortak API v0.2: `ModelParams(a1,a0,b0)`.
 
@@ -40,7 +40,7 @@ paket uyumluluğu ayrıca kontrol edilmelidir.
 
 ## Geliştirme
 
-Test komutu: `python -m pytest -q`. M1 sözleşme ve sınıflandırma testleri mevcuttur.
+Test komutu: `python -m pytest -q`. M1 sözleşme/sınıflandırma ve M2 kritik sönüm testleri mevcuttur.
 GitHub Actions yapılandırması testler eklenince Kişi 2 tarafından hazırlanacaktır.
 
 Commit biçimi: `<type>(<scope>): <description>`.
