@@ -37,7 +37,7 @@ Her rol yaklaşık 16 göreli iş puanı taşır. Bu eşit süre garantisi deği
 | 23–24 Ekim | M4 ve entegrasyon |
 | 25 Ekim | M5, ortak rapor, görseller ve teslim paketi |
 
-Bu bir ekip önerisidir. Önceki konuşmadaki **26 Ekim 2026 08.00** tarihi, üç Case tanımı, 5–6 ekran görüntüsü ve %60 savunma bilgisi asıl yönergeden doğrulanmalıdır. Kaynak erişimi olmadığı için bu pakette kesin ders gereksinimi olarak kabul edilmedi.
+Takvim ekip önerisidir. PDF artık docs/reference altında mevcuttur: teslim **26 Ekim 2026 08.00**, üç Case, 5–6 ekran görüntüsü ve %60 savunma ağırlığı doğrulanmıştır. Ortak API v0.2 kullanılır.
 
 ## Ortak raporun birleştirilmesi
 
@@ -45,6 +45,6 @@ Kişi 1 model ve türetimi; Kişi 2 algoritma ve yakınsama tablosunu; Kişi 3 k
 
 ## Sözleşme bakımı
 
-`ORTAK-SOZLESME-v0.1.md` ortak metnin bağımsız kopyasıdır. API değiştiğinde sürüm artırılır ve dört rehberdeki ortak metin birlikte güncellenir. Mevcut depo farklı bir sözleşme kullanıyorsa önce farklar kaydedilir; bu plan körlemesine uygulanmaz.
+`ORTAK-SOZLESME-v0.2.md` ortak metnin bağımsız kopyasıdır. API değiştiğinde sürüm artırılır ve dört rehberdeki ortak metin birlikte güncellenir. Mevcut depo farklı bir sözleşme kullanıyorsa önce farklar kaydedilir; bu plan körlemesine uygulanmaz.
 
 GitHub'a dosya yükleme, Issue açma, workflow etkinleştirme veya uygulama kodu geliştirme bu paketin hazırlanması sırasında yapılmadı.

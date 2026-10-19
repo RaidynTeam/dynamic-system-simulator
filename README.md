@@ -4,10 +4,10 @@ Lab 1 için dört kişinin geliştireceği Python proje iskeleti.
 
 ## Durum
 
-Bu initial commit yalnızca proje yapısını ve bağımlılıkları hazırlar.
+M1: ortak veri yapıları, parametre doğrulaması ve üç Case sınıflandırması hazırdır.
 Analitik çözüm, Euler, RK4, arayüz ve grafik fonksiyonları henüz uygulanmadı.
-Kaynak dosyalar bilinçli olarak boştur; şu anda çalışan bir GUI yoktur.
-Asıl lab yönergesindeki üç Case ve teslim koşulları henüz doğrulanmadı.
+Çözücü ve arayüz dosyaları sonraki aşamalar için boştur; şu anda çalışan bir GUI yoktur.
+Lab modeli ve teslim koşulları `docs/lab-requirements.md` içinde kaynak PDF ile eşleştirilmiştir. Ortak API v0.2: `ModelParams(a1,a0,b0)`.
 
 ## Kurulum
 
@@ -35,13 +35,12 @@ paket uyumluluğu ayrıca kontrol edilmelidir.
 | `src/dss/ui` | Kişi 3: PySide6 arayüzü ve controller |
 | `src/dss/visualization` | Kişi 4: grafik, hata metrikleri ve export |
 
-`src/dss/contracts.py` ortak tipler için ayrılmıştır.
+`src/dss/contracts.py` ortak tipleri ve doğrulamaları içerir.
 `docs/team/README.md` içinde görev rehberleri bulunur; her rehber tek başına ajana verilebilir.
 
 ## Geliştirme
 
-Her modülün karşılık gelen test klasörü ayrılmıştır. Henüz test yoktur;
-`python -m pytest` bu aşamada “no tests ran” ile çıkabilir.
+Test komutu: `python -m pytest -q`. M1 sözleşme ve sınıflandırma testleri mevcuttur.
 GitHub Actions yapılandırması testler eklenince Kişi 2 tarafından hazırlanacaktır.
 
 Commit biçimi: `<type>(<scope>): <description>`.

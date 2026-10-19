@@ -1,6 +1,6 @@
 # Kişi 4 — Grafikler, hata analizi ve dışa aktarma
 
-**Sürüm:** 1.0 · **Hazırlanma:** 19 Ekim 2026 · **Ortak API:** v0.1
+**Sürüm:** 1.1 · **Hazırlanma:** 19 Ekim 2026 · **Ortak API:** v0.2
 
 Bu belge tek başına paylaşılabilir. Proje bağlamı, ortak sözleşme, ekip kuralları ve sana özel aşamalar burada birlikte bulunur. Kendi yapay zekâ ajanına dosyanın tamamını yükle; yalnız son görev listesini verme. Rolünü başka bir kişiyle değiştirirsen ajana yeni rol belgesini ver.
 
@@ -11,17 +11,19 @@ Konuşmada belirtilen depo: https://github.com/RaidynTeam/dynamic-system-simulat
 Bu belge depoya bağlanılarak hazırlanmadı; mevcut dosyalar, erişimler ve GitHub kuralları doğrulanmış değildir.
 Teknoloji planı: Python, NumPy, PySide6, Matplotlib, pytest. Python 3.11+ başlangıç önerisidir; mevcut depo farklı bir sürüm kullanıyorsa önce onu incele. Bağımlılık sürümleri kurulumda birlikte belirlenip kaydedilecek.
 
-Önceki konuşmada üç Case, analitik/Euler/RK4 karşılaştırması, 26 Ekim 2026 08.00 teslimi, 5–6 ekran görüntüsü ve %60 savunma ağırlığı anılmıştır. **Asıl lab yönergesi elde olmadığı için bunların hiçbiri burada doğrulanmış ders koşulu sayılmaz.** Tarih için yerel saat Asia/Famagusta esas alınır; kesin saat dilimi de yönergeden kontrol edilmelidir.
+Asıl yönerge artık `docs/reference/Lab1-RTS-09102026.pdf` altında mevcuttur. Kaynak: sayfa 1–2 model ve Case formülleri; sayfa 5 görevler; sayfa 6 teslim/rapor koşulları. Teslim 26 Ekim 2026 Pazartesi 08.00; notlandırma %40 rapor, %60 uygulamayı açıklama; raporda 5–6 ekran görüntüsü istenir. PDF saat dilimini ayrıca belirtmez.
 
-Bu paket bir geliştirme planıdır; tamamlanmış uygulama veya deney sonuç raporu değildir. Üye isimleri bilinmediğinden Kişi 1–4 kullanılır. İsimler daha sonra rol dağılımına eklenebilir.
+Bu paket bir geliştirme planıdır; deney sonuç raporu değildir. Üye isimleri bilinmediğinden Kişi 1–4 kullanılır.
 
-### Model için açık tasarım varsayımı
+### Doğrulanmış lab modeli
 
-Ortak başlangıç modeli aşağıdaki sabit katsayılı, sabit girişli ikinci dereceden denklemdir:
+`y'' + a1*y' + a0*y = b0*x(t)`, `x(t)=1` (t>=0), `y(0)=v(0)=0`.
+Kullanıcı parametreleri `a1>0`, `a0>0`, `b0>0`; hepsi sonlu olmalıdır.
+`a2`, `u0`, `y0`, `v0` artık ModelParams alanları değildir. Önceki genel model önerisi bu özel lab kapsamıyla değiştirilmiştir. API v0.2 kullanın.
 
-`a2 * y''(t) + a1 * y'(t) + a0 * y(t) = u0`, `y(t0)=y0`, `y'(t0)=v0`.
-
-Bu denklem **ekibin başlangıç tasarım önerisidir**, hocanın üç Case tanımı değildir. Üç Case'i otomatik olarak az/kritik/aşırı sönümlü kabul etme. Yönergedeki denklemler, giriş türleri, başlangıç koşulları, birimler ve zorunlu grafikler elde edildiğinde `docs/lab-requirements.md` içinde kaynağıyla eşleştir. Bir Case bu modele sığmıyorsa sözleşme değişikliğini ortaklaştır; yerel bir çözümle farklı API üretme. Bu belirsizlik arayüz taslağı, örnek veri, genel çözücü ve test tasarımını durdurmaz; doğrulanmamış Case presetlerini gerçek lab seçeneği gibi sunma.
+`D=a1²-4*a0`: D<0 → Case 1, D=0 → Case 2, D>0 → Case 3.
+PDF örnekleri `(a1,a0)=(1,1),(2,1),(3,1)`; b0 için pozitif değer seçilir. Tüm çözümlerin limiti `b0/a0` olur.
+Lab başlangıç adımı `T=0.1*2*pi/sqrt(a0)`; sayısal ve analitik sonuçlar uyuşmuyorsa adım yarıya indirilerek karşılaştırma tekrarlanır. “İyi uyuşma” için sayısal tolerans PDF'de tanımlanmamıştır; ekip ölçütü ayrıca belgelenir.
 
 ## 2. Ortak mimari, dosya sahipliği ve bağımlılıklar
 
@@ -55,13 +57,12 @@ Bunlar oluşturulacak dosyaların planıdır, mevcut dosyalar değildir. Mevcut 
 
 Bağımlılık yönü: `contracts → analytical/numerical/visualization → ui`. Matematik modülleri Qt veya Matplotlib içe aktarmaz. Visualization Qt gerektirmeden Figure üretir; Qt canvas uyarlaması UI'dadır. Döngüsel import oluşturma.
 
-## 3. Ortak sözleşme v0.1 — dört belgede aynıdır
+## 3. Ortak sözleşme v0.2 — dört belgede aynıdır
 
-Bu bölüm uygulanacak API tasarımıdır; hazır kod değildir. Diziler NumPy float64, zaman ve sonuçlar sonlu değerlerdir. `ModelParams` ve `SimulationConfig` dondurulmuş dataclass olarak tasarlanır. Aşağıdaki isimler ve alanlar bütün modüllerde aynı kullanılacaktır.
+Bu bölüm API v0.2 sözleşmesidir. M1: ortak tipler, doğrulamalar ve sınıflandırma uygulanmıştır; çözüm/grafik/controller fonksiyonları sonraki aşamaların tasarımıdır. Diziler NumPy float64, zaman ve sonuçlar sonlu değerlerdir. `ModelParams`, `SimulationConfig`, `Response`, `ErrorMetrics` frozen dataclass olarak uygulanmıştır. ErrorMetrics iki sonlu, negatif olmayan skaler alır; metrik hesaplaması M1 kapsamında değildir. Aşağıdaki isimler ve alanlar bütün modüllerde aynı kullanılacaktır.
 
 ```python
-ModelParams(a2: float, a1: float, a0: float, u0: float,
-            y0: float, v0: float)
+ModelParams(a1: float, a0: float, b0: float)
 SimulationConfig(t0: float, t_end: float, dt: float)
 Response(t: np.ndarray, y: np.ndarray, v: np.ndarray, method: str)
 ErrorMetrics(max_abs: float, rmse: float)
@@ -74,6 +75,7 @@ validate_response(response: Response) -> None
 # dss.analytical — Kişi 1
 solve_analytical(model: ModelParams, t: np.ndarray) -> Response
 classify_roots(model: ModelParams) -> str
+classify_case(model: ModelParams) -> Literal[1, 2, 3]
 
 # dss.numerical — Kişi 2
 make_time_grid(config: SimulationConfig) -> np.ndarray
@@ -95,12 +97,12 @@ run_simulation(model: ModelParams, config: SimulationConfig,
                methods: tuple[str, ...]) -> list[Response]
 ```
 
-- Modelde bütün sayılar sonlu ve `a2 > 0` olmalıdır. `a1`, `a0`, `u0`, `y0`, `v0` sıfır veya negatif olabilir. Kararsız fakat matematiksel olarak geçerli modelleri gizlice engelleme. Bu kapsama uymayan yönerge modeli sözleşme revizyonudur.
-- Config için `t_end > t0`, `dt > 0`; bütün değerler sonlu. Zaman birimi proje örneklerinde saniyedir; fiziksel katsayı birimleri yönergeden doğrulanacaktır.
+- `ModelParams` tam olarak `a1`, `a0`, `b0` alır; üçü de sonlu ve pozitiftir. Geçersiz değerler yapıcıda `ValueError` üretir. Sıfır başlangıç koşulu ve birim basamak lab kapsamında sabittir.
+- Config için `t0 == 0`, `t_end > 0`, `dt > 0`; bütün değerler sonlu. Config yapıcıda doğrulanır. Zaman birimi proje örneklerinde saniyedir; fiziksel katsayı birimleri yönergeden doğrulanacaktır.
 - Izgara `t0` ile başlar, `t_end` ile biter ve kesin artar. Tam adımlar `t0+k*dt` üzerinden hesaplanır; gerekirse son adım kısalır. Yuvarlama nedeniyle yinelenen son örnek üretilmez. Adım sayısı önceden hesaplanır; 1.000.000'dan fazla örnek istenirse `ValueError` verilir. Bu sınır ürün tercihi olup ortak değiştirilebilir.
-- Çözücüler aynı `t` dizisini alır; `t` en az iki örnektir, bir boyutlu, sonlu ve kesin artandır. `y0` ve `v0`, `t[0]` anındaki başlangıç koşullarıdır. Analitik çözümde `tau=t-t[0]` kullanılır.
-- Response içindeki `t`, `y`, `v` şekli `(N,)` ve uzunlukları eşittir. Girdileri yerinde değiştirme; çıktılar girdi dizilerini paylaşmasın. `method` yalnız `analytical`, `euler`, `rk4` değerlerinden biridir.
-- `classify_roots` çıktısı `distinct_real`, `repeated_real` veya `complex_conjugate` olur. Bu sadece karakteristik kök sınıfıdır; tek başına kararlılık veya lab Case numarası değildir. Ayırt edici sıfır karşılaştırmasında ölçekli tolerans kullanılır; tolerans ve kritik sınıra yakın davranış Kişi 1 tarafından belgelenir.
+- Çözücüler aynı `t` dizisini alır; `t` en az iki örnektir, bir boyutlu, sonlu ve kesin artandır. `t[0] == 0` olmalıdır. Bütün çözücüler ilk örnekte `y=v=0` koşulunu uygular.
+- Response içindeki `t`, `y`, `v` şekli `(N,)` ve uzunlukları eşittir. Girdileri yerinde değiştirme. Response yapıcısı doğrulanmış dizilerin kopyalarını alır; diziler değiştirilebilir fakat girdi belleğini paylaşmaz. Response alanları frozen dataclass ile sabittir. `method` yalnız `analytical`, `euler`, `rk4` değerlerinden biridir.
+- `classify_roots` çıktısı `distinct_real`, `repeated_real` veya `complex_conjugate` olur. `classify_case` bunları sırasıyla Case 3, 2, 1 ile eşler. Pozitif katsayılarla tüm lab sistemleri kararlıdır. Sınıflandırma `(a1/s)²-(2*sqrt(a0)/s)²`, `s=max(a1,2*sqrt(a0))` üzerinden yapılır; mutlak değer `64*float64_epsilon` veya altındaysa kritik kabul edilir. Bu ölçekli sayısal toleranstır; sembolik eşitlik iddiası değildir.
 - Geçersiz giriş `ValueError`; hesap sırasında taşma/NaN/Inf `FloatingPointError` üretir. Desteklenmeyen doğrulanmış lab girdisi varsa `NotImplementedError` açık mesajla kullanılır; sahte sonuç dönülmez.
 - Hata metrikleri yalnız **y** için: `max_abs=max(abs(candidate.y-reference.y))`, `rmse=sqrt(mean((candidate.y-reference.y)**2))`. Karşılaştırılan `t` dizileri aynı şekil ve aynı elemanlara sahip olmalıdır (`np.array_equal`); örtük interpolasyon yapılmaz. Sıfıra bölme riski nedeniyle yüzde hata varsayılan değildir.
 - Figure üreticileri boş listeyi reddeder; karşılaştırmalı çizimde aynı zaman ızgarasını doğrular. `build_error_figure`, her aday için `abs(candidate.y-reference.y)` çizer. Legend, zaman ekseni, çıktı etiketi ve başlık gerekir. Fiziksel birim bilinmiyorsa tahmini birim yazılmaz.
