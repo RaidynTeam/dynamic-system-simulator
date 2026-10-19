@@ -1,4 +1,4 @@
-"""Reserved integration boundary. Real solver orchestration is outside M1."""
+"""Reserved integration boundary. Real solver orchestration is outside UI M2."""
 
 from __future__ import annotations
 
@@ -9,7 +9,7 @@ if TYPE_CHECKING:
 
 
 M1_STATUS = (
-    "M1 skeleton: simulation is unavailable until the shared solvers are "
+    "UI skeleton: simulation is unavailable until the shared solvers are "
     "integrated. No results have been calculated."
 )
 

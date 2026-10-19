@@ -36,14 +36,26 @@ def test_entry_point_without_unfinished_modules():
                     app.exit(3)
                     return
                 windows[0].close()
-            QTimer.singleShot(100, inspect_and_close)
-            QTimer.singleShot(5000, lambda: app.exit(4))
-            return original_exec()
+            inspection = QTimer()
+            inspection.setSingleShot(True)
+            inspection.timeout.connect(inspect_and_close)
+            watchdog = QTimer()
+            watchdog.setSingleShot(True)
+            watchdog.timeout.connect(lambda: app.exit(4))
+            inspection.start(100)
+            watchdog.start(5000)
+            try:
+                return original_exec()
+            finally:
+                inspection.stop()
+                watchdog.stop()
+                inspection.timeout.disconnect()
+                watchdog.timeout.disconnect()
         QApplication.exec = timed_exec
         runpy.run_module("dss", run_name="__main__")
     ''')
     result = subprocess.run(
-        [sys.executable, "-c", script],
+        [sys.executable, "-X", "faulthandler", "-c", script],
         cwd=Path(__file__).resolve().parents[2],
         env={**os.environ, "QT_QPA_PLATFORM": "offscreen"},
         capture_output=True, text=True, timeout=20,

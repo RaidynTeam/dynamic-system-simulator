@@ -1,4 +1,4 @@
-"""Launch the M1 desktop skeleton with ``python -m dss``."""
+"""Launch the desktop UI with ``python -m dss``."""
 
 import sys
 
