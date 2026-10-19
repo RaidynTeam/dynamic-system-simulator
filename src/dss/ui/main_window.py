@@ -12,15 +12,15 @@ from dss.ui.colors import METHOD_COLORS
 from dss.ui.controller import M1_STATUS
 from dss.ui.slider_input import SliderInput
 from dss.ui.state import LabInputs
-from dss.ui.theme import SECONDARY, apply_light_theme
+from dss.ui.theme import apply_theme, method_style, saved_theme, theme_settings
 
 
 class MainWindow(QMainWindow):
-    def __init__(self) -> None:
+    def __init__(self, *, settings=None) -> None:
         super().__init__()
-        app = QApplication.instance()
-        if not app.property("dss_light_theme"):
-            apply_light_theme(app)
+        self.settings = settings if settings is not None else theme_settings()
+        self.theme_mode = saved_theme(self.settings)
+        self.theme = apply_theme(QApplication.instance(), self.theme_mode)
         self.setWindowTitle("Dynamic System Simulator — CMPE 443 Lab 1")
         self.setMinimumSize(1000, 740)
         self.resize(1440, 900)
@@ -35,7 +35,13 @@ class MainWindow(QMainWindow):
         subtitle = QLabel("CMPE 443 · Lab 1 · Unit-Step Response")
         subtitle.setProperty("role", "secondary")
         header.addWidget(subtitle)
-        layout.addLayout(header)
+        header_row = QHBoxLayout()
+        header_row.addLayout(header, 1)
+        self.theme_toggle = QPushButton(objectName="theme_toggle")
+        self.theme_toggle.setFixedSize(36, 36)
+        self.theme_toggle.clicked.connect(self._toggle_theme)
+        header_row.addWidget(self.theme_toggle, 0, Qt.AlignmentFlag.AlignTop)
+        layout.addLayout(header_row)
 
         body = QHBoxLayout()
         body.setSpacing(24)
@@ -105,12 +111,7 @@ class MainWindow(QMainWindow):
         self.method_checks = {}
         for key, label in (("analytical", "Exact"), ("euler", "Euler"), ("rk4", "RK4")):
             check = QCheckBox(label, objectName=f"method_{key}")
-            color = METHOD_COLORS[key]
-            check.setStyleSheet(
-                f"QCheckBox {{ color: {color}; }} "
-                "QCheckBox::indicator { border-radius: 6px; } "
-                f"QCheckBox::indicator:checked {{ background: {color}; border-color: {color}; }}"
-            )
+            check.setStyleSheet(method_style(key, self.theme_mode))
             check.setChecked(True)
             self.method_checks[key] = check
             methods.addWidget(check)
@@ -129,8 +130,8 @@ class MainWindow(QMainWindow):
         self.plot_card = QFrame(objectName="plot_card")
         plot_layout = QVBoxLayout(self.plot_card)
         plot_layout.setContentsMargins(8, 8, 8, 8)
-        self.figure = Figure(facecolor="white", layout="constrained")
-        self.figure.text(0.5, 0.5, "Simulation results will appear here", ha="center", va="center", fontsize=10, color=SECONDARY)
+        self.figure = Figure(facecolor=self.theme.card, layout="constrained")
+        self.figure.text(0.5, 0.5, "Simulation results will appear here", ha="center", va="center", fontsize=10, color=self.theme.secondary)
         self.canvas = FigureCanvasQTAgg(self.figure)
         self.canvas.setObjectName("plot_placeholder")
         self.canvas.setMinimumSize(300, 240)
@@ -163,6 +164,30 @@ class MainWindow(QMainWindow):
         self.t_end.textChanged.connect(self._refresh_feedback)
         for check in self.method_checks.values():
             check.toggled.connect(self._refresh_feedback)
+        self._update_theme_widgets()
+
+    def _toggle_theme(self) -> None:
+        self.set_theme("dark" if self.theme_mode == "light" else "light")
+
+    def set_theme(self, mode: str, *, persist: bool = True) -> None:
+        self.theme = apply_theme(QApplication.instance(), mode)
+        self.theme_mode = mode
+        if persist:
+            self.settings.setValue("ui/theme", mode)
+            self.settings.sync()
+        self._update_theme_widgets()
+
+    def _update_theme_widgets(self) -> None:
+        target = "Dark" if self.theme_mode == "light" else "Light"
+        self.theme_toggle.setText("☾" if self.theme_mode == "light" else "☀")
+        self.theme_toggle.setToolTip(f"Switch to {target} Mode")
+        self.theme_toggle.setAccessibleName(f"Switch to {target} Mode")
+        for method, check in self.method_checks.items():
+            check.setStyleSheet(method_style(method, self.theme_mode))
+        self.figure.set_facecolor(self.theme.card)
+        for text in self.figure.texts:
+            text.set_color(self.theme.secondary)
+        self.canvas.draw_idle()
 
     @staticmethod
     def _section(text: str) -> QLabel:
