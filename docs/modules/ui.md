@@ -1,5 +1,29 @@
 # UI — Person 3, M2
 
+## Method identity color addendum
+
+The requested palette is centralized in `ui/colors.py`: Exact / Analytical
+`#475569` (Slate Gray), Euler `#FF1D8D` (Rose Pink), RK4 `#2563EB` (Blue).
+The existing method selection labels and checked indicators use those colors;
+Euler/RK4 metric row labels use the same identities. There is currently no
+legend preview. Any later UI legend preview must use this palette.
+Application primary remains `#2563EB`, success `#0D9488`, and general warnings
+or accents `#F97316`; method styling is scoped and does not recolor other UI.
+No layout, geometry, behavior, mathematical or visualization algorithms changed.
+At inspection the latest main contained M2, not a separate M2.5 design artifact;
+this addendum applies only colors to the existing UI without attempting a redesign.
+
+**Handoff to Person 4 (visualization owner):** use Euler Rose Pink `#FF1D8D`
+for Euler plot lines, markers and legend entries. Exact / Analytical is
+`#475569`, RK4 is `#2563EB`. Configure this within visualization's own
+Qt-independent styling; do not import the UI package into calculation code.
+Actual plot rendering has deliberately not been edited by Person 3. This
+requirement is also included in the color-change PR for team review.
+
+Verification: full `python -m pytest -q`: **157 passed**; native Windows smoke:
+**PASS**; method colors visually inspected in a native render; `git diff --check`
+passed. Branch: `feat/ui-method-colors`. No solver or visualization files changed.
+
 ## Current milestone: M2 slider controls
 
 M1 was confirmed merged in `origin/main` at `bb9a9d7`. The working tree was

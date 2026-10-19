@@ -1,6 +1,7 @@
 """PySide6 presentation layer for the instructor's lab model."""
 
 from PySide6.QtCore import Qt
+from PySide6.QtGui import QColor
 from PySide6.QtWidgets import (
     QCheckBox, QComboBox, QFormLayout, QGroupBox,
     QHBoxLayout, QHeaderView, QLabel, QLineEdit, QMainWindow, QPushButton,
@@ -10,6 +11,7 @@ from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg
 from matplotlib.figure import Figure
 
 from dss.ui.controller import M1_STATUS
+from dss.ui.colors import METHOD_COLORS
 from dss.ui.state import LabInputs
 from dss.ui.slider_input import SliderInput
 
@@ -116,6 +118,11 @@ class MainWindow(QMainWindow):
         self.method_checks = {}
         for key, label in (("analytical", "Exact"), ("euler", "Euler"), ("rk4", "RK4")):
             check = QCheckBox(label, objectName=f"method_{key}")
+            color = METHOD_COLORS[key]
+            check.setStyleSheet(
+                f"QCheckBox {{ color: {color}; }} "
+                f"QCheckBox::indicator:checked {{ background-color: {color}; }}"
+            )
             check.setChecked(True)
             self.method_checks[key] = check
             method_layout.addWidget(check)
@@ -152,6 +159,8 @@ class MainWindow(QMainWindow):
         for row, name in enumerate(("Euler", "RK4")):
             for col, value in enumerate((name, "Not calculated", "Not calculated")):
                 self.metrics.setItem(row, col, QTableWidgetItem(value))
+            key = ("euler", "rk4")[row]
+            self.metrics.item(row, 0).setForeground(QColor(METHOD_COLORS[key]))
         self.metrics.setMaximumHeight(125)
         metrics_layout.addWidget(self.metrics)
         right.addWidget(metrics)
