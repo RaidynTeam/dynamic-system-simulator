@@ -2,15 +2,17 @@
 
 Lab 1 için dört kişinin geliştireceği Python proje iskeleti.
 
-## Durum — M2 slider controls
+## Durum — M2.5 light UI redesign
 
-PySide6 masaüstü arayüzü çalışır: parametreler, Case seçimi, Exact / Euler / RK4
-seçimleri, Run Simulation, Matplotlib canvas, hata metrikleri ve durum alanı.
+PySide6 arayüzü Windows koyu temada olsa bile açık tema kullanır. Solda tek
+System Controls kartı, görünür Case düğmeleri, dört slider ve Run Simulation;
+sağda geniş beyaz Matplotlib canvas ve kompakt hata metrikleri boş durumu vardır.
+Alt satır hazır/hata/henüz bağlanmamış simülasyon durumunu gösterir.
 Ortak veri tipleri, parametre doğrulaması ve üç Case sınıflandırması hazırdır;
-analitik Case 2 çözümü main'de mevcuttur; Case 1/3, sayısal çözücüler ve grafik
-fonksiyonları için diğer üyelerin çalışmaları devam eder.
+analitik üç Case çözümü main'de mevcuttur; sayısal çözücüler ve grafik
+entegrasyonu için diğer üyelerin çalışmaları devam eder.
 Run Simulation hesaplama yapmaz; UI durum mesajı gösterir. Grafik boştur,
-hata hücreleri “Not calculated” yazar. DEMO veri veya sahte sonuç kullanılmaz.
+metrik alanı “No results yet” yazar. DEMO veri veya sahte sonuç kullanılmaz.
 
 Hocanın **Lab1 RTS 09102026** yönergesi geliştirme sırasında main'e eklendi:
 [kaynak PDF](docs/reference/Lab1-RTS-09102026.pdf) ve
@@ -46,24 +48,26 @@ py -3.11 -m venv .venv
 
 Aktif Python ortamında diğer platformlarda `python -m dss` kullanın.
 
-Örnek M2 akışı: Case 2 seçin, `b0` slider'ını ve bitiş zamanını düzenleyin, yöntemleri
+Örnek akış: Case 2 düğmesine basın, `b0` slider'ını ve bitiş zamanını düzenleyin, yöntemleri
 seçin ve Run Simulation'a basın. Hesaplama henüz kullanılamıyor mesajı görünür.
 
 - `a1`, `a0`, `b0`: QSlider, 0.01–20.00 aralığı, 0.01 adım ve sayısal değer etiketi.
 - `dt`: logaritmik QSlider, 0.000001–10 saniye, her onluk mertebede 200 adım.
 - Auto dt başlangıçta açıktır; `a0` değişince ilk lab formülü uygulanır.
   `dt` slider'ını elle değiştirmek veya `dt / 2`, `dt × 2` kullanmak Auto dt'yi kapatır.
-- Case seçimi ve “Reset Δt” Auto dt'yi açar ve formülü uygular; `b0` korunur.
+- Case seçimi veya Auto dt'yi yeniden açmak ilk formülü uygular; `b0` korunur.
 - Auto dt ve yarılama/ikiye katlama tam kayan nokta değerini korur; slider kolu
   en yakın logaritmik konumu gösterir. Hesaplamaya aktarılacak değer etikette gösterilir.
 - Aralık dışı değerler önceki değeri korur ve hata mesajı verir; sessiz kırpma yapılmaz.
-- Başlangıç ve bitiş zamanı ayrı alanlardır; başlangıç API v0.2 gereği sıfırda sabittir.
+- Başlangıç API v0.2 gereği sıfırda sabittir; bu bilgi bitiş zamanı ipucundadır.
   Bitiş zamanı noktalı ondalık veya bilimsel gösterim kabul eder (ör. `20.5`, `2e1`).
   Boş, geçersiz, sonlu olmayan, pozitif olmayan zaman ve tahmini 1.000.000 örnek
   sınırını aşan ayarlar durum alanında hata gösterir.
 
 Slider aralıkları ürün tercihidir; hocanın katsayı üst sınırı olarak yorumlanmaz.
-Küçük pencerelerde sol panel kaydırılır; Run Simulation görünür kalır.
+Varsayılan pencere 1440×900, desteklenen minimum 1000×740'tır. Her iki boyutta
+dört slider, Case ve Run düğmeleri kaydırma olmadan görünür. Euler kimlik rengi
+`#FF1D8D`; Exact `#475569`, RK4 `#2563EB` kullanır.
 
 Tam olarak başlangıçta kurulan üçüncü taraf sürümleri yeniden kurmak için
 `requirements-dev.txt` yerine `requirements.lock.txt` kullanın.
@@ -106,8 +110,9 @@ Windows yerel UI smoke testi (pencere otomatik açılır ve kapanır):
 .\.venv\Scripts\python.exe tests/ui/native_smoke.py
 ```
 
-M2 doğrulama: tam pytest paketi **137 passed**; Windows smoke testi **PASS**.
-Smoke görüntüleri `.venv/ui-m2-native*.png` altında yerel olarak tutulur.
+M2.5 doğrulama: tam pytest paketi **162 passed**; Windows smoke testi **PASS**.
+Görsel olarak kontrol edilen görüntüler `.venv/ui-m25-native-1440x900.png` ve
+`.venv/ui-m25-native-minimum.png` altında yerel olarak tutulur.
 M3 ve gerçek hesaplama entegrasyonu bu aşamaya dahil değildir.
 
 Commit biçimi: `<type>(<scope>): <description>`.

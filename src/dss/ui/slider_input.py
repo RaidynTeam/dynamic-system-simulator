@@ -3,14 +3,14 @@
 from math import isfinite, log10
 
 from PySide6.QtCore import Qt, Signal
-from PySide6.QtWidgets import QLabel, QSlider, QVBoxLayout, QWidget
+from PySide6.QtWidgets import QHBoxLayout, QLabel, QSlider, QVBoxLayout, QWidget
 
 
 class SliderInput(QWidget):
     valueChanged = Signal(float)
     valueRejected = Signal(str)
 
-    def __init__(self, name: str, value: float, *, logarithmic: bool = False):
+    def __init__(self, name: str, value: float, *, logarithmic: bool = False, caption: str = ""):
         super().__init__(objectName=name)
         self.logarithmic = logarithmic
         self.lower, self.upper = (1e-6, 10.0) if logarithmic else (0.01, 20.0)
@@ -25,8 +25,13 @@ class SliderInput(QWidget):
         self.readout.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
-        layout.setSpacing(2)
-        layout.addWidget(self.readout)
+        layout.setSpacing(4)
+        heading = QHBoxLayout()
+        heading.addWidget(QLabel(caption or name))
+        heading.addStretch()
+        heading.addWidget(self.readout)
+        layout.addLayout(heading)
+        self.slider.setFixedHeight(18)
         layout.addWidget(self.slider)
         self.setToolTip(
             "Range: 0.000001–10 s; logarithmic thumb, 200 ticks per decade. "
@@ -61,8 +66,10 @@ class SliderInput(QWidget):
         blocked = self.slider.blockSignals(True)
         self.slider.setValue(position)
         self.slider.blockSignals(blocked)
-        self.readout.setText(f"{value:.12g} s" if self.logarithmic else f"{value:.2f}")
-        self.slider.setAccessibleDescription(self.readout.text())
+        formatted = f"{value:.4f}" if value >= 0.001 else f"{value:.3g}"
+        self.readout.setText(f"{formatted} s" if self.logarithmic else f"{value:.2f}")
+        self.readout.setToolTip(f"Full value: {value:.17g}")
+        self.slider.setAccessibleDescription(f"{value:.17g}")
         if changed:
             self.valueChanged.emit(value)
         return True

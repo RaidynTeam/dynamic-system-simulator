@@ -1,180 +1,158 @@
-"""PySide6 presentation layer for the instructor's lab model."""
+"""Compact light-theme desktop presentation; calculation remains deferred."""
 
 from PySide6.QtCore import Qt
-from PySide6.QtGui import QColor
 from PySide6.QtWidgets import (
-    QCheckBox, QComboBox, QFormLayout, QGroupBox,
-    QHBoxLayout, QHeaderView, QLabel, QLineEdit, QMainWindow, QPushButton,
-    QScrollArea, QTableWidget, QTableWidgetItem, QVBoxLayout, QWidget,
+    QApplication, QButtonGroup, QCheckBox, QFrame, QHBoxLayout, QLabel,
+    QLineEdit, QMainWindow, QPushButton, QVBoxLayout, QWidget,
 )
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg
 from matplotlib.figure import Figure
 
-from dss.ui.controller import M1_STATUS
 from dss.ui.colors import METHOD_COLORS
-from dss.ui.state import LabInputs
+from dss.ui.controller import M1_STATUS
 from dss.ui.slider_input import SliderInput
+from dss.ui.state import LabInputs
+from dss.ui.theme import SECONDARY, apply_light_theme
 
 
 class MainWindow(QMainWindow):
     def __init__(self) -> None:
         super().__init__()
+        app = QApplication.instance()
+        if not app.property("dss_light_theme"):
+            apply_light_theme(app)
         self.setWindowTitle("Dynamic System Simulator — CMPE 443 Lab 1")
-        self.setMinimumSize(940, 700)
-        self.resize(1120, 800)
-        root = QWidget()
-        self.setCentralWidget(root)
-        layout = QVBoxLayout(root)
-        layout.setContentsMargins(24, 20, 24, 20)
-        layout.setSpacing(14)
-        title = QLabel("Dynamic System Simulator")
-        font = title.font()
-        font.setPointSize(20)
-        font.setBold(True)
-        title.setFont(font)
-        layout.addWidget(title)
-        layout.addWidget(QLabel("CMPE 443 · Lab 1    |    M2 — Slider controls"))
-        equation = QLabel("y″ + a₁y′ + a₀y = b₀u(t)    ·    Unit-step input    ·    y(0) = y′(0) = 0")
-        equation.setWordWrap(True)
-        layout.addWidget(equation)
+        self.setMinimumSize(1000, 740)
+        self.resize(1440, 900)
+        page = QWidget(objectName="page")
+        self.setCentralWidget(page)
+        layout = QVBoxLayout(page)
+        layout.setContentsMargins(28, 24, 28, 20)
+        layout.setSpacing(18)
+        header = QVBoxLayout()
+        header.setSpacing(4)
+        header.addWidget(QLabel("Dynamic System Simulator", objectName="title"))
+        subtitle = QLabel("CMPE 443 · Lab 1 · Unit-Step Response")
+        subtitle.setProperty("role", "secondary")
+        header.addWidget(subtitle)
+        layout.addLayout(header)
 
         body = QHBoxLayout()
-        body.setSpacing(20)
+        body.setSpacing(24)
         layout.addLayout(body, 1)
-        controls = QWidget()
-        left = QVBoxLayout(controls)
-        left.setContentsMargins(0, 0, 8, 0)
-        left.setSpacing(12)
-        scroll = QScrollArea()
-        scroll.setWidgetResizable(True)
-        scroll.setFrameShape(QScrollArea.Shape.NoFrame)
-        scroll.setMinimumWidth(340)
-        scroll.setWidget(controls)
-        left_column = QVBoxLayout()
-        left_column.setSpacing(12)
-        left_column.addWidget(scroll, 1)
-        body.addLayout(left_column, 2)
+        self.control_card = QFrame(objectName="control_card")
+        self.control_card.setMaximumHeight(680)
+        left = QVBoxLayout(self.control_card)
+        left.setContentsMargins(18, 18, 18, 18)
+        left.setSpacing(10)
+        body.addWidget(self.control_card, 35, Qt.AlignmentFlag.AlignTop)
+        left.addWidget(self._section("System Controls"))
 
-        cases = QGroupBox("Lab case")
-        case_layout = QVBoxLayout(cases)
-        self.case_selector = QComboBox(objectName="case_selector")
-        self.case_selector.addItems([
-            "Case 1 — Underdamped", "Case 2 — Critically damped",
-            "Case 3 — Overdamped", "Custom lab parameters",
-        ])
-        case_layout.addWidget(self.case_selector)
-        case_note = QLabel("Cases set a₁ = 1, 2, 3 and a₀ = 1. b₀ stays editable.")
-        case_note.setWordWrap(True)
-        case_layout.addWidget(case_note)
-        left.addWidget(cases)
+        case_row = QHBoxLayout()
+        case_row.setSpacing(6)
+        self.case_group = QButtonGroup(self)
+        self.case_buttons = []
+        for index in range(3):
+            button = QPushButton(f"Case {index + 1}", objectName=f"case_{index + 1}")
+            button.setProperty("case", True)
+            button.setCheckable(True)
+            button.setMinimumHeight(32)
+            button.setToolTip(f"a₁ = {index + 1}, a₀ = 1; preserve b₀ and restore Auto dt.")
+            self.case_group.addButton(button, index)
+            self.case_buttons.append(button)
+            case_row.addWidget(button)
+        self.case_buttons[0].setChecked(True)
+        self.case_group.idClicked.connect(self._apply_case)
+        left.addLayout(case_row)
 
-        model = QGroupBox("System parameters")
-        form = QFormLayout(model)
-        self.a1 = SliderInput("a1", 1.0)
-        self.a0 = SliderInput("a0", 1.0)
-        self.b0 = SliderInput("b0", 1.0)
-        for label, field in (("a₁ · damping", self.a1), ("a₀ · restoring", self.a0), ("b₀ · input gain", self.b0)):
-            form.addRow(label, field)
-        ranges = QLabel("Coefficient range: 0.01–20.00 · step 0.01")
-        ranges.setWordWrap(True)
-        form.addRow(ranges)
-        fixed = QLabel("Lab: a₂ = 1; y₀ = v₀ = t₀ = 0\nLegacy general API: u₀ = b₀")
-        fixed.setWordWrap(True)
-        form.addRow(fixed)
-        left.addWidget(model)
+        self.a1 = SliderInput("a1", 1.0, caption="a₁ · Damping")
+        self.a0 = SliderInput("a0", 1.0, caption="a₀ · Restoring")
+        self.b0 = SliderInput("b0", 1.0, caption="b₀ · Input gain")
+        self.dt = SliderInput("dt", LabInputs.initial_step(1.0), logarithmic=True, caption="dt · Time step")
+        for field in (self.a1, self.a0, self.b0, self.dt):
+            left.addWidget(field)
 
-        simulation = QGroupBox("Simulation configuration")
-        config = QFormLayout(simulation)
-        self.t0 = QLineEdit("0", objectName="t0")
-        self.t0.setReadOnly(True)
-        self.t0.setToolTip("Fixed at zero by the instructor's lab model and shared API v0.2.")
-        self.t_end = QLineEdit("20", objectName="t_end")
-        self.t_end.setToolTip("UI default: 20 seconds; choose the desired observation interval.")
-        self.dt = SliderInput("dt", LabInputs.initial_step(1.0), logarithmic=True)
-        config.addRow("Start time (s)", self.t0)
-        config.addRow("End time (s)", self.t_end)
-        config.addRow("Time step Δt (s)", self.dt)
-        self.auto_dt = QCheckBox("Auto dt · follow a₀", objectName="auto_dt")
+        auto_row = QHBoxLayout()
+        self.auto_dt = QCheckBox("Auto dt", objectName="auto_dt")
+        self.auto_dt.setToolTip("dt = 0.1 × 2π / √a₀; re-enable to restore the lab initial step.")
         self.auto_dt.setChecked(True)
-        config.addRow(self.auto_dt)
-        step_actions = QHBoxLayout()
+        auto_row.addWidget(self.auto_dt)
+        auto_row.addStretch()
         self.halve_dt = QPushButton("dt / 2", objectName="halve_dt")
         self.double_dt = QPushButton("dt × 2", objectName="double_dt")
+        for button in (self.halve_dt, self.double_dt):
+            button.setProperty("role", "step")
+            auto_row.addWidget(button)
         self.halve_dt.clicked.connect(self._halve_step)
         self.double_dt.clicked.connect(self._double_step)
-        step_actions.addWidget(self.halve_dt)
-        step_actions.addWidget(self.double_dt)
-        config.addRow(step_actions)
-        reset = QPushButton("Reset Δt to lab initial value", objectName="reset_dt")
-        reset.clicked.connect(self._reset_step)
-        config.addRow(reset)
-        note = QLabel("Initial Δt = 0.1 × 2π / √a₀.\nΔt range: 1 µs–10 s (logarithmic).\nManual Δt changes turn Auto dt off.")
-        note.setWordWrap(True)
-        config.addRow(note)
-        left.addWidget(simulation)
+        left.addLayout(auto_row)
+        line = QFrame(objectName="divider")
+        line.setFixedHeight(1)
+        left.addWidget(line)
 
-        methods = QGroupBox("Methods")
-        method_layout = QHBoxLayout(methods)
+        time_row = QHBoxLayout()
+        time_row.addWidget(QLabel("End time"))
+        time_row.addStretch()
+        self.t_end = QLineEdit("20", objectName="t_end")
+        self.t_end.setAlignment(Qt.AlignmentFlag.AlignRight)
+        self.t_end.setMaximumWidth(100)
+        self.t_end.setToolTip("End time in seconds. Start time is fixed at 0 s by the lab model (API v0.2).")
+        time_row.addWidget(self.t_end)
+        time_row.addWidget(QLabel("s"))
+        left.addLayout(time_row)
+
+        methods = QHBoxLayout()
         self.method_checks = {}
         for key, label in (("analytical", "Exact"), ("euler", "Euler"), ("rk4", "RK4")):
             check = QCheckBox(label, objectName=f"method_{key}")
             color = METHOD_COLORS[key]
             check.setStyleSheet(
                 f"QCheckBox {{ color: {color}; }} "
-                f"QCheckBox::indicator:checked {{ background-color: {color}; }}"
+                "QCheckBox::indicator { border-radius: 6px; } "
+                f"QCheckBox::indicator:checked {{ background: {color}; border-color: {color}; }}"
             )
             check.setChecked(True)
             self.method_checks[key] = check
-            method_layout.addWidget(check)
-        left.addWidget(methods)
+            methods.addWidget(check)
+        methods.addStretch()
+        left.addLayout(methods)
+        left.addStretch(1)
         self.run_button = QPushButton("Run Simulation", objectName="run_simulation")
-        self.run_button.setMinimumHeight(40)
+        self.run_button.setMinimumHeight(42)
         self.run_button.clicked.connect(self._run_requested)
-        left_column.addWidget(self.run_button)
-        left.addStretch()
+        left.addWidget(self.run_button)
 
-        right = QVBoxLayout()
-        right.setSpacing(12)
-        body.addLayout(right, 3)
-        plot = QGroupBox("System response")
-        plot_layout = QVBoxLayout(plot)
-        self.figure = Figure(layout="constrained")
-        self.figure.text(
-            0.5, 0.5, "Plot placeholder\nNo simulation results — UI skeleton",
-            ha="center", va="center", fontsize=12, color="#516174",
-        )
+        results = QVBoxLayout()
+        results.setSpacing(12)
+        body.addLayout(results, 65)
+        results.addWidget(self._section("System Response"))
+        self.plot_card = QFrame(objectName="plot_card")
+        plot_layout = QVBoxLayout(self.plot_card)
+        plot_layout.setContentsMargins(8, 8, 8, 8)
+        self.figure = Figure(facecolor="white", layout="constrained")
+        self.figure.text(0.5, 0.5, "Simulation results will appear here", ha="center", va="center", fontsize=10, color=SECONDARY)
         self.canvas = FigureCanvasQTAgg(self.figure)
         self.canvas.setObjectName("plot_placeholder")
-        self.canvas.setMinimumSize(300, 200)
+        self.canvas.setMinimumSize(300, 240)
         plot_layout.addWidget(self.canvas)
-        right.addWidget(plot, 1)
+        results.addWidget(self.plot_card, 1)
+        results.addSpacing(6)
+        results.addWidget(self._section("Error Metrics"))
+        self.metrics = QLabel("No results yet", objectName="error_metrics")
+        self.metrics.setProperty("role", "secondary")
+        results.addWidget(self.metrics)
 
-        metrics = QGroupBox("Error metrics · relative to Exact")
-        metrics_layout = QVBoxLayout(metrics)
-        self.metrics = QTableWidget(2, 3, objectName="error_metrics")
-        self.metrics.setHorizontalHeaderLabels(["Method", "Max absolute error", "RMSE"])
-        self.metrics.verticalHeader().hide()
-        self.metrics.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
-        self.metrics.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
-        for row, name in enumerate(("Euler", "RK4")):
-            for col, value in enumerate((name, "Not calculated", "Not calculated")):
-                self.metrics.setItem(row, col, QTableWidgetItem(value))
-            key = ("euler", "rk4")[row]
-            self.metrics.item(row, 0).setForeground(QColor(METHOD_COLORS[key]))
-        self.metrics.setMaximumHeight(125)
-        metrics_layout.addWidget(self.metrics)
-        right.addWidget(metrics)
-
-        status_group = QGroupBox("Simulation status")
-        status_layout = QVBoxLayout(status_group)
-        self.status = QLabel(M1_STATUS, objectName="simulation_status")
+        footer = QHBoxLayout()
+        footer.setSpacing(8)
+        self.status_indicator = QLabel("✓", objectName="status_indicator")
+        footer.addWidget(self.status_indicator)
+        self.status = QLabel("Ready to simulate", objectName="simulation_status")
         self.status.setWordWrap(True)
         self.status.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
-        self.status.setMinimumHeight(40)
-        status_layout.addWidget(self.status)
-        layout.addWidget(status_group)
+        self.status.setMinimumHeight(26)
+        footer.addWidget(self.status, 1)
+        layout.addLayout(footer)
 
-        self.case_selector.currentIndexChanged.connect(self._apply_case)
         self.a1.valueChanged.connect(self._mark_custom)
         self.a0.valueChanged.connect(self._a0_changed)
         self.dt.valueChanged.connect(self._manual_step)
@@ -186,8 +164,17 @@ class MainWindow(QMainWindow):
         for check in self.method_checks.values():
             check.toggled.connect(self._refresh_feedback)
 
+    @staticmethod
+    def _section(text: str) -> QLabel:
+        label = QLabel(text)
+        label.setProperty("role", "section")
+        return label
+
     def _mark_custom(self) -> None:
-        self.case_selector.setCurrentIndex(3)
+        self.case_group.setExclusive(False)
+        for button in self.case_buttons:
+            button.setChecked(False)
+        self.case_group.setExclusive(True)
 
     def _a0_changed(self) -> None:
         self._mark_custom()
@@ -222,8 +209,6 @@ class MainWindow(QMainWindow):
         self._refresh_feedback()
 
     def _apply_case(self, index: int) -> None:
-        if index == 3:
-            return
         for field, value in ((self.a1, float(index + 1)), (self.a0, 1.0)):
             field.blockSignals(True)
             field.setValue(value)
@@ -232,28 +217,37 @@ class MainWindow(QMainWindow):
 
     def input_state(self) -> LabInputs:
         try:
-            if "," in self.t_end.text() or "," in self.t0.text():
+            if "," in self.t_end.text():
                 raise ValueError
             t_end = float(self.t_end.text())
-            t0 = float(self.t0.text())
         except ValueError:
-            raise ValueError("Enter numeric start/end times using a decimal point (for example 20.5).") from None
+            raise ValueError("Enter a numeric end time using a decimal point (for example 20.5).") from None
         return LabInputs(
             a1=self.a1.value(), a0=self.a0.value(), b0=self.b0.value(),
-            t0=t0, t_end=t_end, dt=self.dt.value(),
+            t0=0.0, t_end=t_end, dt=self.dt.value(),
             methods=tuple(key for key, check in self.method_checks.items() if check.isChecked()),
         )
 
-    def _show_error(self, message: str) -> None:
-        self.status.setText(f"Input error: {message}")
+    def _set_status(self, message: str, state: str = "ready") -> None:
+        self.status.setText(message)
+        self.status_indicator.setText({"ready": "✓", "error": "!", "notice": "i"}[state])
+        for widget in (self.status, self.status_indicator):
+            widget.setProperty("state", state)
+            widget.style().unpolish(widget)
+            widget.style().polish(widget)
 
-    def _refresh_feedback(self) -> None:
+    def _show_error(self, message: str) -> None:
+        self._set_status(f"Input error: {message}", "error")
+
+    def _refresh_feedback(self) -> bool:
         try:
             self.input_state().validate()
         except ValueError as error:
             self._show_error(str(error))
-            return
-        self.status.setText(M1_STATUS)
+            return False
+        self._set_status("Ready to simulate")
+        return True
 
     def _run_requested(self) -> None:
-        self._refresh_feedback()
+        if self._refresh_feedback():
+            self._set_status(M1_STATUS, "notice")

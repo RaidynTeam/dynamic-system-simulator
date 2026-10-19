@@ -9,8 +9,7 @@ if TYPE_CHECKING:
 
 
 M1_STATUS = (
-    "UI skeleton: simulation is unavailable until the shared solvers are "
-    "integrated. No results have been calculated."
+    "Simulation is not connected yet. No results have been calculated."
 )
 
 
