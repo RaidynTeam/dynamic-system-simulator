@@ -1,4 +1,114 @@
-# UI — Person 3, M2.5
+# UI — Person 3, M3
+
+## Current milestone: M3 — themes and visualization UI
+
+Status: **PARTIAL**. Theme switching and the independently testable visualization
+UI are implemented. Actual visualization integration is blocked by Person 4's
+empty modules. Real solver orchestration remains M4 and has not been started.
+
+### Repository review and ownership
+
+Started with a clean working tree; fetched origin and confirmed M2.5 PR #7
+merged into main (c376abf). Created `feat/ui-m3-theme-visualization` from a
+fast-forwarded main. Reviewed AGENTS.md, API v0.2, UI/state/controller/tests,
+owner modules and open PRs. Person 1's analytical solver supports all three cases.
+Person 2's numerical modules and Person 4's visualization modules were empty;
+there were no open solver/visualization PRs. Remote codeko still pointed to the
+original analytical M1 state. macOS launcher PR #8 was initially open, then
+merged upstream during M3; its README additions and run.command were preserved
+by merging updated main. No launcher edits or macOS verification are claimed.
+No files owned by analytical, numerical, visualization or contracts were changed.
+
+### Themes without layout redesign
+
+The approved card sizes, spacing, typography and 35/65 layout remain. A 36px
+sun/moon toggle fits at the header's top right. `ui/theme.py` owns explicit
+Fusion/QPalette/QSS styling for both modes, including focus, disabled controls,
+inputs, sliders, checkboxes, combo boxes and tooltips. First launch defaults to
+Light. QSettings uses organization RaidynTeam, application
+DynamicSystemSimulator, key `ui/theme`. Selection is restored by MainWindow
+and persisted when the user changes themes; tests/smoke use isolated INI files.
+
+Dark colors are background #0F172A, card #1E293B, text #F8FAFC, secondary
+#94A3B8 and border #334155. Light colors and shared accents remain unchanged.
+Exact #475569, Euler #FF1D8D and RK4 #2563EB swatches retain their identity.
+Dark mode uses light surrounding method text for legibility. The empty Figure,
+placeholder text and QtAgg canvas palette follow the mode. QtAgg's own white
+palette is explicitly overridden, avoiding a white edge strip at scaled DPI.
+
+### Public visualization boundary
+
+`ui/presentation.py` lazily loads the team's documented functions, from package
+exports or their existing owning modules: build_response_figure and
+build_error_figure (plots), compute_error (metrics), export_figure (export).
+No visualization/contract/solver imports are needed for startup. The adapter
+contains validation and delegation only, no solver, plot or metric algorithms.
+
+Future M4 code can call `window.show_responses(list[Response])`. The adapter
+validates actual shared Responses, unique methods and exactly matching time
+grids before calling Person 4's APIs. Only actual shared ErrorMetrics returned
+by compute_error are displayed. Without Exact plus a numerical candidate,
+metrics remain Not calculated and the error view stays disabled. A failed
+load/validation clears old figures and metrics; changed form parameters or
+methods invalidate old results. No sample output is injected into production.
+
+The existing System Response header holds compact Response/Error and PNG/PDF
+controls. A small method-identity preview sits within the existing plot card;
+its tooltip distinguishes preview from loaded-result legend. Before results,
+export and view selection are disabled. FigureCanvasQTAgg replacement removes,
+closes, detaches and schedules the old widget for deletion; figures for the two
+views are cached until replaced. Tests check weak references and child-widget
+counts through repeated changes. Theme switching does not discard loaded data.
+
+Export delegates file writing to Person 4's export_figure. The UI handles format,
+extension, cancel and explicit overwrite confirmation (default No). Success is
+reported only after the API returns and a file exists. Missing results, wrong
+extensions and exporter exceptions cannot report success. TEST DOUBLE APIs live
+only in tests; export tests produce actual PNG/PDF files through the injected
+test exporter, not the unavailable production exporter.
+
+### Dependencies and M4 prerequisites
+
+- Available: shared v0.2 types/validators and Person 1 solve_analytical for all
+  three Cases; no shared API changes proposed for calculations.
+- Missing Person 2: make_time_grid, solve_euler, solve_rk4.
+- Missing Person 4: build_response_figure, build_error_figure, compute_error,
+  export_figure. Their current files are empty; production results remain
+  unavailable and Run still reports that calculation integration is not connected.
+- Person 4 theme handoff/proposal: preserve method colors (especially Euler
+  #FF1D8D) in curves, markers and legends. Please agree on a public, Qt-independent
+  styling hook or theme arguments for returned Figures. This is a proposal, not
+  a unilateral contract change. UI currently themes only the Figure/canvas
+  background; axes, grid, labels and actual curve styling remain Person 4's
+  responsibility and are not claimed as completed real-plot dark-mode support.
+- M4 requires these APIs, agreement on genuine plot theme styling, team review
+  and explicit user approval. No controller orchestration was added here.
+
+### Verification and handoff
+
+- Branch: feat/ui-m3-theme-visualization. Theme commit: 70de6b7; visualization
+  boundary commit: 035625a. Both changes were tested and pushed separately.
+- Full `.venv/Scripts/python.exe -m pytest -q`: **185 passed**. Includes inherited
+  regressions; theme switching/persistence across a new process/window; Windows
+  theme independence; real shared contract mapping; canvas replacement/release;
+  matching-grid/metric validation; missing APIs; export success/failure/cancel/
+  overwrite and repeated view changes. Explicit deferred-delete processing in
+  fixtures prevents test widgets accumulating between cases.
+- Native Windows smoke in Light and Dark: **PASS**, including theme button,
+  sliders, Cases, Auto dt, halving, methods, invalid input, Run, disabled result
+  actions, both target sizes and close. Runtime: Python 3.11.17 / PySide6 6.12.0 /
+  Matplotlib 3.11.2 / pytest 9.1.1. No dependencies added.
+- Four native client captures inspected: `.venv/ui-m3-light-1440x900.png`,
+  `.venv/ui-m3-dark-1440x900.png`, `.venv/ui-m3-light-1000x740.png`,
+  `.venv/ui-m3-dark-1000x740.png`. Sizes verified; captures normalized to logical
+  pixels for Windows scaling. All four sliders, Cases, methods and Run remain
+  visible; no overlap, clipping or scrolling. The results area stays dominant.
+- `git diff --check` passed. Screenshot evidence is local and ignored. Native
+  testing is automated; human desktop acceptance and macOS smoke are not claimed.
+- Recommended next step: review M3 UI PR and have Persons 2/4 complete the
+  missing APIs and agree the plot-theme interface. Stop here; do not start M4.
+
+## Historical M2.5 record (superseded where M3 differs)
 
 ## Current milestone: M2.5 visual redesign
 

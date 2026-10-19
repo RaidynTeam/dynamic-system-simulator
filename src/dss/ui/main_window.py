@@ -2,8 +2,8 @@
 
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
-    QApplication, QButtonGroup, QCheckBox, QFrame, QHBoxLayout, QLabel,
-    QLineEdit, QMainWindow, QPushButton, QVBoxLayout, QWidget,
+    QApplication, QButtonGroup, QCheckBox, QComboBox, QFileDialog, QFrame, QHBoxLayout, QLabel,
+    QLineEdit, QMainWindow, QMessageBox, QPushButton, QVBoxLayout, QWidget,
 )
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg
 from matplotlib.figure import Figure
@@ -12,15 +12,17 @@ from dss.ui.colors import METHOD_COLORS
 from dss.ui.controller import M1_STATUS
 from dss.ui.slider_input import SliderInput
 from dss.ui.state import LabInputs
-from dss.ui.theme import SECONDARY, apply_light_theme
+from dss.ui.theme import apply_theme, method_style, saved_theme, style_canvas, theme_settings
+from dss.ui.presentation import prepare_results
 
 
 class MainWindow(QMainWindow):
-    def __init__(self) -> None:
+    def __init__(self, *, settings=None) -> None:
         super().__init__()
-        app = QApplication.instance()
-        if not app.property("dss_light_theme"):
-            apply_light_theme(app)
+        self.settings = settings if settings is not None else theme_settings()
+        self.theme_mode = saved_theme(self.settings)
+        self.theme = apply_theme(QApplication.instance(), self.theme_mode)
+        self.prepared_results = None
         self.setWindowTitle("Dynamic System Simulator — CMPE 443 Lab 1")
         self.setMinimumSize(1000, 740)
         self.resize(1440, 900)
@@ -35,7 +37,13 @@ class MainWindow(QMainWindow):
         subtitle = QLabel("CMPE 443 · Lab 1 · Unit-Step Response")
         subtitle.setProperty("role", "secondary")
         header.addWidget(subtitle)
-        layout.addLayout(header)
+        header_row = QHBoxLayout()
+        header_row.addLayout(header, 1)
+        self.theme_toggle = QPushButton(objectName="theme_toggle")
+        self.theme_toggle.setFixedSize(36, 36)
+        self.theme_toggle.clicked.connect(self._toggle_theme)
+        header_row.addWidget(self.theme_toggle, 0, Qt.AlignmentFlag.AlignTop)
+        layout.addLayout(header_row)
 
         body = QHBoxLayout()
         body.setSpacing(24)
@@ -105,12 +113,7 @@ class MainWindow(QMainWindow):
         self.method_checks = {}
         for key, label in (("analytical", "Exact"), ("euler", "Euler"), ("rk4", "RK4")):
             check = QCheckBox(label, objectName=f"method_{key}")
-            color = METHOD_COLORS[key]
-            check.setStyleSheet(
-                f"QCheckBox {{ color: {color}; }} "
-                "QCheckBox::indicator { border-radius: 6px; } "
-                f"QCheckBox::indicator:checked {{ background: {color}; border-color: {color}; }}"
-            )
+            check.setStyleSheet(method_style(key, self.theme_mode))
             check.setChecked(True)
             self.method_checks[key] = check
             methods.addWidget(check)
@@ -125,16 +128,37 @@ class MainWindow(QMainWindow):
         results = QVBoxLayout()
         results.setSpacing(12)
         body.addLayout(results, 65)
-        results.addWidget(self._section("System Response"))
+        result_header = QHBoxLayout()
+        result_header.addWidget(self._section("System Response"))
+        result_header.addStretch()
+        self.view_selector = QComboBox(objectName="plot_view")
+        self.view_selector.addItems(["Response", "Error"])
+        self.view_selector.setFixedWidth(108)
+        self.view_selector.setEnabled(False)
+        self.view_selector.setToolTip("Error view requires Exact and a numerical response on matching time grids.")
+        result_header.addWidget(self.view_selector)
+        self.export_png = QPushButton("PNG", objectName="export_png")
+        self.export_pdf = QPushButton("PDF", objectName="export_pdf")
+        for button in (self.export_png, self.export_pdf):
+            button.setProperty("role", "step")
+            button.setEnabled(False)
+            button.setToolTip("Export is available after genuine simulation results are loaded.")
+            result_header.addWidget(button)
+        self.export_png.clicked.connect(self._export_png)
+        self.export_pdf.clicked.connect(self._export_pdf)
+        results.addLayout(result_header)
         self.plot_card = QFrame(objectName="plot_card")
-        plot_layout = QVBoxLayout(self.plot_card)
-        plot_layout.setContentsMargins(8, 8, 8, 8)
-        self.figure = Figure(facecolor="white", layout="constrained")
-        self.figure.text(0.5, 0.5, "Simulation results will appear here", ha="center", va="center", fontsize=10, color=SECONDARY)
+        self.plot_layout = QVBoxLayout(self.plot_card)
+        self.plot_layout.setContentsMargins(8, 8, 8, 8)
+        self.legend_preview = QLabel(objectName="method_legend")
+        self.legend_preview.setToolTip("Method identity preview; no simulation results loaded.")
+        self.plot_layout.addWidget(self.legend_preview)
+        self.figure = Figure(facecolor=self.theme.card, layout="constrained")
+        self.figure.text(0.5, 0.5, "Simulation results will appear here", ha="center", va="center", fontsize=10, color=self.theme.secondary)
         self.canvas = FigureCanvasQTAgg(self.figure)
         self.canvas.setObjectName("plot_placeholder")
         self.canvas.setMinimumSize(300, 240)
-        plot_layout.addWidget(self.canvas)
+        self.plot_layout.addWidget(self.canvas, 1)
         results.addWidget(self.plot_card, 1)
         results.addSpacing(6)
         results.addWidget(self._section("Error Metrics"))
@@ -163,6 +187,151 @@ class MainWindow(QMainWindow):
         self.t_end.textChanged.connect(self._refresh_feedback)
         for check in self.method_checks.values():
             check.toggled.connect(self._refresh_feedback)
+        self.view_selector.currentIndexChanged.connect(self._change_view)
+        self._update_theme_widgets()
+
+    def _toggle_theme(self) -> None:
+        self.set_theme("dark" if self.theme_mode == "light" else "light")
+
+    def set_theme(self, mode: str, *, persist: bool = True) -> None:
+        self.theme = apply_theme(QApplication.instance(), mode)
+        self.theme_mode = mode
+        if persist:
+            self.settings.setValue("ui/theme", mode)
+            self.settings.sync()
+        self._update_theme_widgets()
+
+    def _update_theme_widgets(self) -> None:
+        target = "Dark" if self.theme_mode == "light" else "Light"
+        self.theme_toggle.setText("☾" if self.theme_mode == "light" else "☀")
+        self.theme_toggle.setToolTip(f"Switch to {target} Mode")
+        self.theme_toggle.setAccessibleName(f"Switch to {target} Mode")
+        for method, check in self.method_checks.items():
+            check.setStyleSheet(method_style(method, self.theme_mode))
+        figures = [self.figure] if self.prepared_results is None else [
+            self.prepared_results.response_figure, self.prepared_results.error_figure
+        ]
+        for figure in figures:
+            if figure is not None:
+                figure.set_facecolor(self.theme.card)
+        if self.prepared_results is None:
+            for text in self.figure.texts:
+                text.set_color(self.theme.secondary)
+        self._update_legend()
+        style_canvas(self.canvas, self.theme)
+        self.canvas.draw_idle()
+
+    def _update_legend(self) -> None:
+        methods = self.prepared_results.methods if self.prepared_results else tuple(
+            key for key, check in self.method_checks.items() if check.isChecked()
+        )
+        names = {"analytical": "Exact", "euler": "Euler", "rk4": "RK4"}
+        self.legend_preview.setText(" &nbsp; ".join(
+            f'<span style="color:{METHOD_COLORS[key]}">●</span> {names[key]}' for key in methods
+        ))
+
+    def _replace_figure(self, figure: Figure) -> None:
+        old_canvas = self.canvas
+        old_figure = self.figure
+        self.plot_layout.removeWidget(old_canvas)
+        old_canvas.hide()
+        old_canvas.close()
+        if old_figure.canvas is old_canvas:
+            old_figure.set_canvas(None)
+        old_canvas.deleteLater()
+        self.figure = figure
+        self.canvas = FigureCanvasQTAgg(figure)
+        self.canvas.setObjectName("plot_placeholder")
+        self.canvas.setMinimumSize(300, 240)
+        self.plot_layout.addWidget(self.canvas, 1)
+        self._update_theme_widgets()
+
+    def show_responses(self, responses: list, *, api=None) -> bool:
+        """M4 handoff: accept shared Responses; never run solvers here."""
+        try:
+            prepared = prepare_results(responses, api)
+        except Exception as error:
+            self._clear_results()
+            self._show_error(str(error))
+            return False
+        self.prepared_results = prepared
+        self.view_selector.blockSignals(True)
+        self.view_selector.setCurrentIndex(0)
+        self.view_selector.blockSignals(False)
+        self.view_selector.setEnabled(prepared.error_figure is not None)
+        self._replace_figure(prepared.response_figure)
+        self.export_png.setEnabled(True)
+        self.export_pdf.setEnabled(True)
+        names = {"euler": "Euler", "rk4": "RK4"}
+        self.metrics.setText("\n".join(
+            f"{names[key]}   Max |error|: {value.max_abs:.6g}   RMSE: {value.rmse:.6g}"
+            for key, value in prepared.metrics.items()
+        ) or "Not calculated — Exact and a numerical response are required.")
+        self.legend_preview.setToolTip("Methods in the loaded simulation results.")
+        self._set_status("Results loaded")
+        return True
+
+    def _clear_results(self) -> None:
+        self.prepared_results = None
+        self.view_selector.blockSignals(True)
+        self.view_selector.setCurrentIndex(0)
+        self.view_selector.blockSignals(False)
+        self.view_selector.setEnabled(False)
+        self.export_png.setEnabled(False)
+        self.export_pdf.setEnabled(False)
+        self.metrics.setText("No results yet")
+        self.legend_preview.setToolTip("Method identity preview; no simulation results loaded.")
+        placeholder = Figure(facecolor=self.theme.card, layout="constrained")
+        placeholder.text(0.5, 0.5, "Simulation results will appear here", ha="center", va="center", fontsize=10, color=self.theme.secondary)
+        self._replace_figure(placeholder)
+
+    def _change_view(self, index: int) -> None:
+        if self.prepared_results is None:
+            return
+        figure = self.prepared_results.error_figure if index else self.prepared_results.response_figure
+        if figure is not None:
+            self._replace_figure(figure)
+
+    def _export_png(self) -> None:
+        self.export_current("png")
+
+    def _export_pdf(self) -> None:
+        self.export_current("pdf")
+
+    def export_current(self, suffix: str) -> None:
+        from pathlib import Path
+        if self.prepared_results is None:
+            self._set_status("Export requires simulation results.", "notice")
+            return
+        if suffix not in ("png", "pdf"):
+            self._show_error("Choose PNG or PDF export.")
+            return
+        name, _ = QFileDialog.getSaveFileName(
+            self, "Export current plot", f"{self.view_selector.currentText().lower()}.{suffix}",
+            f"{suffix.upper()} (*.{suffix})", options=QFileDialog.Option.DontConfirmOverwrite,
+        )
+        if not name:
+            return
+        path = Path(name)
+        if not path.suffix:
+            path = path.with_suffix(f".{suffix}")
+        if path.suffix.lower() != f".{suffix}":
+            self._show_error(f"Choose a .{suffix} file for this export.")
+            return
+        if path.exists() and QMessageBox.question(
+            self, "Replace file?", f"Replace {path.name}?",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+            QMessageBox.StandardButton.No,
+        ) != QMessageBox.StandardButton.Yes:
+            return
+        try:
+            self.prepared_results.api.export_figure(self.figure, path)
+            if not path.is_file():
+                raise OSError("The exporter did not create the selected file.")
+        except Exception as error:
+            self._show_error(f"Export failed: {error}")
+            return
+        self._set_status(f"Exported {path.name}")
 
     @staticmethod
     def _section(text: str) -> QLabel:
@@ -240,6 +409,9 @@ class MainWindow(QMainWindow):
         self._set_status(f"Input error: {message}", "error")
 
     def _refresh_feedback(self) -> bool:
+        if self.prepared_results is not None:
+            self._clear_results()
+        self._update_legend()
         try:
             self.input_state().validate()
         except ValueError as error:
