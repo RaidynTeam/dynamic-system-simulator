@@ -1,22 +1,34 @@
 Visualization M1 test record
 Date: 19 October 2026
-Interpreter: Python 3.12.0 on Windows 11
-NOTE: the repository targets Python 3.11 (.python-version, CI). Only 3.12 is
-installed on this machine, so tests/ui cannot be collected here; see
-docs/modules/visualization.md for the diagnosis. The visualization module
-itself imports no Qt, so its own suite is unaffected.
+Interpreter: Python 3.11.9 on Windows 11 Home 26200
+Install: py -3.11 -m venv .venv ; python -m pip install -e ".[dev]"  (same as CI)
+Key versions: numpy 2.4.6 | matplotlib 3.11.2 | PySide6 6.12.0 | pytest 9.1.1
+
+$ QT_QPA_PLATFORM=offscreen MPLBACKEND=Agg python -m pytest -q
+..............                                                           [100%]
+374 passed in 7.65s
 
 $ MPLBACKEND=Agg python -m pytest tests/visualization -q
 .........................................................                [100%]
-57 passed in 2.11s
+57 passed in 2.41s
 
-$ MPLBACKEND=Agg python -m pytest tests/visualization tests/analytical tests/numerical tests/integration -q
-=========================== short test summary info ===========================
-FAILED tests/integration/test_startup.py::test_entry_point_without_unfinished_modules
-1 failed, 301 passed in 3.97s
+374 = Person 3's reported 317 baseline on updated main, plus the 57 tests
+added by this branch. No existing test changed or was removed.
 
-The single failure is NOT caused by this branch. It reproduces on unmodified
-main with the same interpreter: PySide6 6.12.0's shibokensupport import hook
-calls inspect.getsource() on six.moves, whose loader lost module_repr() support
-in Python 3.12. 'import PySide6.QtWidgets; import matplotlib.dates' fails the
-same way with no pytest involved.
+$ python tests/ui/native_smoke.py   (real Windows window, opened and closed)
+PASS: native Windows Light/Dark, sliders, presets, Auto dt, halving, invalid input, methods, Run, both sizes, close.
+
+$ python -m dss   (launched from an interactive PowerShell tab)
+The window opens and reports its title as 'Dynamic System Simulator - CMPE 443
+Lab 1' and responds to input. It shows the empty result state, because the
+production build_response_figure belongs to M2 and the Run-to-plot wiring to
+Person 3's M4B. No result or metric is displayed yet, as intended.
+
+Earlier note, now resolved: a first attempt used Python 3.12, the only version
+installed on this machine at the time. There the application could not start at
+all and tests/ui could not be collected, because PySide6 6.12.0's shibokensupport
+import hook calls inspect.getsource() on six.moves, whose loader lost
+module_repr() support in Python 3.12. Python 3.11.9 was installed and the whole
+suite passes; the same one-line reproduction now prints OK:
+  python -c "import PySide6.QtWidgets; import matplotlib.dates"
+Use the repository's pinned 3.11 (.python-version, CI), not 3.12.

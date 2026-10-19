@@ -146,13 +146,27 @@ daha doğru olduğunu ima etmez. Modülde sözleşmenin istediği `DEMO_LABEL`
 
 ### Çalıştırılan testler ve gerçek sonuçlar
 
+Python 3.11.9, Windows 11. Kurulum CI ile aynı: `python -m pip install -e ".[dev]"`.
+
 ```
+QT_QPA_PLATFORM=offscreen MPLBACKEND=Agg python -m pytest -q
+374 passed
+
 MPLBACKEND=Agg python -m pytest tests/visualization -q
 57 passed
 
-MPLBACKEND=Agg python -m pytest tests/visualization tests/analytical tests/numerical tests/integration -q
-1 failed, 301 passed
+python tests/ui/native_smoke.py
+PASS: native Windows Light/Dark, sliders, presets, Auto dt, halving,
+      invalid input, methods, Run, both sizes, close.
 ```
+
+374 = Kişi 3'ün güncel main üzerinde bildirdiği 317 taban + bu dalın eklediği 57
+test. Mevcut hiçbir test değiştirilmedi veya kaldırılmadı.
+
+Uygulama ayrıca gerçek bir PowerShell sekmesinden `python -m dss` ile açıldı;
+pencere "Dynamic System Simulator — CMPE 443 Lab 1" başlığıyla geliyor ve girdiye
+yanıt veriyor. Beklendiği gibi boş sonuç durumunu gösteriyor: üretim
+`build_response_figure` M2'de, Run-to-plot bağlantısı Kişi 3'ün M4B'sindedir.
 
 Kayıt: [`docs/evidence/visualization-m1-tests.txt`](../evidence/visualization-m1-tests.txt).
 
@@ -185,13 +199,16 @@ uygulamadan, M4B entegrasyonundan sonra alınacaktır.
 - `src/dss/ui/colors.py`'nin tek kaynaktan içe aktarması bir öneridir, uygulanmadı.
 - CONTRIBUTING.md bu dalda genişletilmedi; M5 kapsamındadır.
 
-### Ortam uyarısı — bu makinede Python 3.12
+### Ortam notu — Python 3.12 ile çalışmıyor, 3.11 kullanın
 
-Depo Python 3.11 hedefliyor (`.python-version`, CI). Bu makinede yalnız 3.12
-kurulu ve 3.12'de **uygulama açılmıyor, `tests/ui` toplanamıyor**:
+Bu, geliştirme sırasında karşılaşılıp çözülen bir durumdur; ekibin geri kalanını
+da ilgilendirdiği için kaydediliyor.
+
+Depo Python 3.11 hedefliyor (`.python-version`, CI). Bu makinede önce yalnız
+3.12 kuruluydu ve 3.12'de **uygulama hiç açılmıyor, `tests/ui` toplanamıyor**:
 
 ```
-import PySide6.QtWidgets; import matplotlib.dates
+python -c "import PySide6.QtWidgets; import matplotlib.dates"
 AttributeError: '_SixMetaPathImporter' object has no attribute '_path'
 ```
 
@@ -200,12 +217,12 @@ modül için `inspect.getsource()` çağırıyor. `matplotlib.dates` zinciri
 `six.moves` sahte modülünü yüklüyor; Python 3.12 yükleyicilerdeki `module_repr()`
 desteğini kaldırdığı için modülün `repr`'i `loader._path` arıyor ve `six` bunu
 tanımlamıyor. Bu bir depo hatası değildir ve bu dalla ilgisi yoktur; değişmemiş
-main'de aynı yorumlayıcıyla aynen tekrarlanır. Kişi 3'ün 3.11'de bildirdiği
-317 passed sonucuyla da çelişmez.
+main'de aynı yorumlayıcıyla aynen tekrarlanır.
 
-Sonuç: bu makineye **Python 3.11 kurulmalıdır**, yoksa uygulama yerel olarak
-çalıştırılamaz ve M4B sonrası ekran görüntüleri alınamaz. Görselleştirme modülü
-Qt içe aktarmadığı için kendi testleri 3.12'de sorunsuz çalışır.
+**Çözüm uygulandı:** Python 3.11.9 kuruldu, `.venv` sıfırdan 3.11 ile
+oluşturuldu. Aynı tek satırlık tekrar üretim artık sorunsuz geçiyor ve tüm paket
+374 passed veriyor. Depodaki sabitlenmiş 3.11'i kullanın; 3.12'ye geçilecekse
+PySide6/six tarafındaki bu kancanın önce düzelmesi gerekir.
 
 ## Aşamalar arası durum kaydı
 
@@ -215,8 +232,8 @@ Qt içe aktarmadığı için kendi testleri 3.12'de sorunsuz çalışır.
 - **Sıradaki görev:** M2 — `build_response_figure`; başlık, zaman/çıktı etiketi,
   legend, grid, `markevery`; bir/üç yöntem, boş liste, yanlış şekil ve farklı
   zaman ızgarası testleri; girdi dizilerinin değişmediğinin doğrulanması.
-- **Çalıştırılan testler:** yukarıda; 57 passed (görselleştirme), 301 passed /
-  1 pre-existing failure (Qt dışı tüm paketler).
+- **Çalıştırılan testler:** Python 3.11.9'da tam paket **374 passed**; yalnız
+  görselleştirme 57 passed; native Windows smoke PASS; uygulama yerelde açıldı.
 - **Blokaj:** yok. M1 başka kimseyi beklemedi.
 - **Başkasından beklenen API:** yok. M3 için Kişi 1 `solve_analytical` ve Kişi 2
   `solve_euler`/`solve_rk4` zaten main'de. M4'ün deney tablosu için Kişi 2 ile
