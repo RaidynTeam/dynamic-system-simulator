@@ -1,0 +1,4 @@
+# Runtime dependencies; exact installed versions: requirements.lock.txt
+numpy
+PySide6
+matplotlib
