@@ -204,10 +204,11 @@ ayarları yeniden yazılmadı; editable kurulum ve depo dışından import doğr
 macOS kaynaklı mevcut kilit dosyasının Windows'ta doğrulandığı iddia edilmez.
 Yerel bağımlılık sürümleri `docs/evidence/numerical-environment.txt` içindedir.
 
-- Dal: `feat/numerical-methods`; başlangıç: güncel main `c968ff6`.
+- Dal: `feat/numerical-methods`; başlangıç main `c968ff6`;
+  ekip güncellemeleri main `1d26c8c` dahil birleştirildi.
 - Izgara commit'i: `1ea380d`; çözücüler ve testler: `6616fcd`.
 - Sayısal bölüm: 58 test geçti; mevcut ekip testleri ilk kontrolde 157 geçti.
-- Tam test: 215 geçti (157 mevcut + 58 sayısal). Kayıt:
+- Güncel ekip koduyla tam test: 220 geçti (162 mevcut + 58 sayısal). Kayıt:
   `docs/evidence/numerical-tests.txt`.
 - CI yapılandırmasının bulunması, GitHub çalıştırmasının başarılı olduğu
   anlamına gelmez; uzak çalışma sonucu ayrıca kontrol edilecektir.
