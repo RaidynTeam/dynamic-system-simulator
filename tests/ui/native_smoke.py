@@ -25,6 +25,13 @@ def main() -> int:
         try:
             assert app.platformName() == "windows"
             assert window.isVisible()
+            window.theme_toggle.click()
+            assert window.theme_mode == "dark"
+            window.theme_toggle.click()
+            assert window.theme_mode == "light"
+            assert not window.export_png.isEnabled()
+            assert not window.export_pdf.isEnabled()
+            assert not window.view_selector.isEnabled()
             QTest.keyClick(window.a1.slider, Qt.Key.Key_Right)
             assert window.a1.value() == 1.01
             for case in (1, 2, 0):
@@ -60,6 +67,13 @@ def main() -> int:
                 for width, height in ((1440, 900), (1000, 740)):
                     window.resize(width, height)
                     app.processEvents()
+                    # Native Windows may first constrain a restore after the
+                    # minimum-size capture to the monitor work area. Reapply
+                    # the requested client size after those window events.
+                    window.resize(width, height)
+                    app.processEvents()
+                    window.canvas.draw()
+                    assert window.width() == width and window.height() == height
                     assert window.run_button.visibleRegion().boundingRect().height() >= 40
                     for field in (window.a1, window.a0, window.b0, window.dt):
                         assert field.slider.visibleRegion().boundingRect().height() > 0

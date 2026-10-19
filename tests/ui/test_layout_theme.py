@@ -29,6 +29,7 @@ def test_all_inputs_fit_without_scrolling(window, app, size):
         *window.case_buttons, window.a1.slider, window.a0.slider, window.b0.slider,
         window.dt.slider, window.auto_dt, window.halve_dt, window.double_dt,
         window.t_end, *window.method_checks.values(), window.run_button,
+        window.view_selector, window.export_png, window.export_pdf, window.theme_toggle,
     ):
         assert widget.isVisible()
         assert widget.visibleRegion().boundingRect().size() == widget.size(), widget.objectName()
@@ -38,7 +39,7 @@ def test_all_inputs_fit_without_scrolling(window, app, size):
     assert window.plot_card.width() > window.control_card.width() * 1.6
     assert window.canvas.height() >= 240
     assert window.status.height() <= 48
-    assert not window.findChildren(QComboBox)
+    assert window.findChildren(QComboBox) == [window.view_selector]
     assert not window.findChildren(QGroupBox)
     assert not window.findChildren(QTableWidget)
 

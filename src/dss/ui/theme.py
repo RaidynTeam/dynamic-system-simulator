@@ -108,6 +108,10 @@ def apply_theme(app: QApplication, mode: str) -> Theme:
         QPushButton[role="step"]:hover {{ background: {theme.hover}; }}
         QPushButton#theme_toggle {{ font-size: 20px; padding: 0px; color: {TEXT}; background: transparent; }}
         QLineEdit {{ background: {CARD}; border: 1px solid {BORDER}; border-radius: 5px; padding: 4px 8px; selection-background-color: {PRIMARY}; }}
+        QComboBox {{ background: {CARD}; border: 1px solid {BORDER}; border-radius: 5px; padding: 3px 6px; }}
+        QComboBox:disabled {{ color: {SECONDARY}; }}
+        QComboBox:focus {{ border-color: {PRIMARY}; }}
+        QComboBox QAbstractItemView {{ background: {CARD}; color: {TEXT}; selection-background-color: {PRIMARY}; selection-color: white; }}
         QSlider {{ background: transparent; }}
         QSlider::groove:horizontal {{ height: 5px; background: {theme.track}; border-radius: 2px; }}
         QSlider::sub-page:horizontal {{ background: {PRIMARY}; border-radius: 2px; }}
@@ -128,3 +132,12 @@ def apply_theme(app: QApplication, mode: str) -> Theme:
 def apply_light_theme(app: QApplication) -> None:
     """Compatibility entry point; theme persistence is managed by the window."""
     apply_theme(app, "light")
+
+
+def style_canvas(canvas, theme: Theme) -> None:
+    """QtAgg sets its own white palette; override it to avoid light edge strips."""
+    palette = canvas.palette()
+    palette.setColor(QPalette.ColorRole.Window, QColor(theme.card))
+    palette.setColor(QPalette.ColorRole.Base, QColor(theme.card))
+    canvas.setPalette(palette)
+    canvas.setAutoFillBackground(True)

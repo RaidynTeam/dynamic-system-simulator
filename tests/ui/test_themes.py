@@ -20,6 +20,7 @@ def test_switch_themes_preserves_layout_and_controls(window, app, mode):
     assert app.palette().color(QPalette.ColorRole.Window).name() == theme.background.lower()
     assert QColor.fromRgbF(*window.figure.get_facecolor()).name() == theme.card.lower()
     assert window.figure.texts[0].get_color() == theme.secondary
+    assert window.canvas.palette().color(QPalette.ColorRole.Window).name() == theme.card.lower()
     window.case_buttons[1].click()
     window.a0.slider.setValue(400)
     initial = window.dt.value()
