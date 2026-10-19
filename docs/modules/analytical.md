@@ -1,4 +1,4 @@
-# Analitik modül — M1, M2 ve M3
+# Analitik modül — M1, M2, M3 ve M4
 
 ## Ne yapıldı ve neden?
 
@@ -134,19 +134,43 @@ korumayla değiştirilmiştir.
 Kritik sınıflandırma toleransı ve API v0.2 aynıdır. Aşırı girdilerde
 float64 ara taşması açık FloatingPointError verir; sınırsız aralık iddia edilmez.
 
+## M4 — Sayısal sonuçlarla doğruluk karşılaştırması
+
+M4 deneyleri, numerical modül main'e geldikten sonra ortak analitik, Euler ve RK4
+çözücüleriyle aynı t ızgaralarında çalıştırıldı. Yeniden üretilebilir komut:
+
+```sh
+PYTHONPATH=src MPLBACKEND=Agg .venv/bin/python tests/numerical/experiments.py
+```
+
+PDF'nin Case örnekleri `(a1,a0)=(1,1),(2,1),(3,1)` ve `b0=1` için, `t_end=20`
+seçildi. Başlangıç adımı yönergedeki `0.1*2*pi/sqrt(a0)` formülünden geldi.
+Euler/RK4 ile analitik y arasındaki maksimum örnek-noktası mutlak hatası
+hesaplandı. `0.01` sınırı laboratuvar yönergesinde verilmedi; yalnız bu deneyin
+açık ekip ölçütüdür. İlk adım her üç Case'te de Euler hedefini kaçırdı; tam
+simülasyonlar tekrar koşturularak `dt` yarıya indirildi. Her iki yöntemin
+hedefe ulaştığı en büyük (en az daraltılmış) adımlar Case 1/2/3 için sırasıyla
+`0.0196349541`, `0.0392699082`, `0.0785398163` oldu. Case 3'te RK4 de ilk adımda
+hedefi kaçırdı (`0.0133500` hata), fakat Euler'den belirgin ölçüde daha azdı.
+
+Kritik sönümlü Case 2'nin `t_end=2` deneyinde adım `0.1 → 0.05 → 0.025`
+olduğunda Euler endpoint hataları yaklaşık `2.054`, `2.026` oranlarıyla,
+RK4 endpoint hataları `17.024`, `16.506` oranlarıyla azaldı. Bunlar sırasıyla
+birinci ve dördüncü dereceden global yakınsama beklentisi olan 2 ve 16'ya
+yaklaşır. Bu sonuç bu aralıktaki ölçümdür; sonsuz küçük adım için garanti
+vermez. Ayrıntılı tablolar, komut, ortam ve sınırlar
+`docs/evidence/analytical-m4-verification.txt` içindedir.
+
+İki karşılaştırma da seçilen zaman noktalarında yapılır; sürekli zaman boyunca
+hata üst sınırı kanıtlamaz. Grafik/savunma ekran görüntüsü ayrı teslim işidir.
+
 ## Durum kaydı
 
 - Sözleşme: v0.2, imza aynı: `solve_analytical(model,t) -> Response`.
-- M1 PR #1 ve M2 PR #3 main’e merge edildi.
-- Branch: feat/analytical-m3; başlangıç main commit’i bb9a9d7.
-- M3 yerel uygulama ve testleri tamam; push/PR/review/merge yapılmadı.
-- Test: `QT_QPA_PLATFORM=offscreen MPLBACKEND=Agg .venv/bin/python -m pytest -q`
-  → 122 passed; analitik, ortak sözleşme, UI ve entegrasyon testleri birlikte geçti.
-- Kanıt: `docs/evidence/analytical-m3-tests.txt`.
-- Yeni testler: üç Case için 80 basamaklı Decimal referansı; kritik sınıra iki yandan
-  yaklaşım; küçük zamanlar; ayrık köklerde geniş ölçek; farklı doğal frekanslar;
-  son değer, b0 ölçekleme, monotonluk/salınım; y/v türev tutarlılığı ve ODE artığı.
-- M2’deki artık geçersiz “Case 1/3 desteklenmiyor” testleri kaldırıldı.
-- Numerical ekibinden blokaj yok. Sıradaki görev M4: numerical modülü hazır
-  olduğunda aynı ızgarada Euler/RK4 karşılaştırması ve deney/rapor kanıtı.
-- Arayüzün hesaplama katmanına bağlanması Kişi 3’e; grafik üretimi Kişi 4’e aittir.
+- M1 PR #1, M2 PR #3 ve M3 PR #5 main’e merge edildi.
+- M3 PR #5 main’e merge edildi; analitik çözümler güncel main içindedir.
+- M4 karşılaştırması main’deki numerical modülle tamamlandı.
+- Doğrulama: Python 3.11.17, macOS, NumPy 2.4.6, pytest 9.1.1; tam suite 243 passed.
+- M4 deney kanıtı: `docs/evidence/analytical-m4-verification.txt`.
+- Deneyleri tekrarlama komutu: `PYTHONPATH=src MPLBACKEND=Agg .venv/bin/python tests/numerical/experiments.py`.
+- Sonraki iş: analitik modülde yeni hesaplama gerekmiyor; ekip görselleri/uygulama entegrasyonu ve rapor teslim hazırlığı devam edebilir.

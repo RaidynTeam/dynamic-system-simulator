@@ -1,0 +1,31 @@
+Analytical M4 verification
+Run from the merged main checkout on 2026-10-19.
+
+Experiment command:
+PYTHONPATH=src MPLBACKEND=Agg .venv/bin/python tests/numerical/experiments.py
+Environment: Python 3.11.17, macOS (Darwin), NumPy 2.4.6, pytest 9.1.1.
+
+Lab example parameters: b0=a0=1, t_end=20, initial h=0.1*2*pi/sqrt(a0)=0.6283185307.
+Error is max(abs(y_numerical-y_analytical)) at shared time samples. Team-selected target for these examples: <= 0.01. When the target was missed, the full experiment was repeated with h/2.
+
+| Case | First h | Euler error at first h | RK4 error at first h | Smallest tested h meeting target for both | Halvings |
+|---|---:|---:|---:|---:|---:|
+| 1 | 0.6283185307 | 4.2456625100e-01 | 1.1940059470e-03 | 0.0196349541 | 5 |
+| 2 | 0.6283185307 | 1.3645129660e-01 | 2.8790463888e-03 | 0.0392699082 | 4 |
+| 3 | 0.6283185307 | 1.1290948247e-01 | 1.3349999881e-02 | 0.0785398163 | 3 |
+
+Interpretation: the handout's suggested initial step is a starting point, not a guarantee of agreement. Case 1 needed the smallest step for Euler. RK4 was already more accurate at the initial step, but Case 3 also missed the chosen target until refinement. This is a sampled-grid comparison, not a proof of a continuous-time error bound. The <= 0.01 target and t_end=20 are team experiment choices, not requirements stated in the handout.
+
+Convergence check: Case 2, a1=2, a0=b0=1, t_end=2; error is absolute endpoint y error against PDF formula (9).
+
+| h | Euler error | Euler ratio | RK4 error | RK4 ratio |
+|---:|---:|---:|---:|---:|
+| 0.1 | 1.4258851585e-02 | - | 5.1085177122e-07 | - |
+| 0.05 | 6.9417845866e-03 | 2.054061 | 3.0008312391e-08 | 17.023675 |
+| 0.025 | 3.4263922472e-03 | 2.025975 | 1.8180400518e-09 | 16.505859 |
+
+The measured ratios approach 2 for Euler's first-order global error and 16 for RK4's fourth-order global error. This is an observed convergence regime for this example, not a guarantee at arbitrarily small h where roundoff can dominate.
+
+Full suite command:
+QT_QPA_PLATFORM=offscreen MPLBACKEND=Agg .venv/bin/python -m pytest -q
+Result: 243 passed in 6.49s. This includes the merged analytical, numerical, UI and integration tests.
