@@ -76,6 +76,6 @@ def test_minimum_window_contains_plot_and_status(window, app):
     assert window.run_button.visibleRegion().boundingRect().height() >= 40
 
 
-def test_controller_explicitly_unavailable():
-    with pytest.raises(NotImplementedError, match="No results have been calculated"):
+def test_controller_rejects_missing_shared_inputs():
+    with pytest.raises(ValueError, match="ModelParams"):
         run_simulation(None, None, ("analytical",))
