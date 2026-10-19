@@ -2,7 +2,7 @@
 
 Lab 1 için dört kişinin geliştireceği Python proje iskeleti.
 
-## Durum — M3 theme switching & visualization UI (PARTIAL)
+## Durum — M4A real solver orchestration (COMPLETE)
 
 PySide6 arayüzünde varsayılan açık tema ve sağ üstte güneş/ay düğmesiyle anlık
 koyu tema geçişi vardır. Seçim QSettings ile sonraki açılışta hatırlanır;
@@ -11,15 +11,19 @@ System Controls kartı, görünür Case düğmeleri, dört slider ve Run Simulat
 sağda temayla eşleşen Matplotlib canvas ve kompakt hata metrikleri boş durumu vardır.
 Alt satır hazır/hata/henüz bağlanmamış simülasyon durumunu gösterir.
 Ortak veri tipleri, parametre doğrulaması ve üç Case sınıflandırması hazırdır;
-analitik üç Case çözümü main'de mevcuttur; sayısal çözücüler ve grafik
-entegrasyonu için diğer üyelerin çalışmaları devam eder.
-Run Simulation hesaplama yapmaz; UI durum mesajı gösterir. Grafik boştur,
+analitik üç Case çözümü, ortak zaman ızgarası, Euler ve RK4 API'leri mevcuttur.
+`dss.ui.controller.run_simulation(model, config, methods)` tek ızgarada yalnız
+seçili çözücüleri istenen sırayla çalıştırır ve gerçek shared Response listesi döndürür.
+Girdileri ortak doğrulayıcılara devreder; sayısal hataları değiştirmeden iletir.
+Run Simulation düğmesinin hesaplama/grafik bağlantısı M4B'ye bırakılmıştır;
+düğme henüz hesaplama yapmaz ve bunu açıkça bildirir. Grafik boştur,
 metrik alanı “No results yet” yazar. DEMO veri veya sahte sonuç kullanılmaz.
 
 Sonuç başlığında Response/Error seçimi ve PNG/PDF düğmeleri hazırlanmıştır;
 gerçek sonuç yokken kapalıdır. Person 4'ün Figure/metrik/export API'leri hâlâ
 boştur. UI bağlantıları yalnız izole test doubles ile doğrulandı; gerçek
-visualization entegrasyonu **PARTIAL** durumundadır. M4 çözücü akışı eklenmedi.
+visualization entegrasyonu **PARTIAL** durumundadır. M4A controller tamamdır;
+M4B Run-to-plot/worker entegrasyonu eklenmedi.
 Gelecekte `MainWindow.show_responses()` shared Response nesnelerini doğrular ve
 Figure/metrik üretimini Person 4'e bırakır; yazmayı export_figure'a devreder.
 
@@ -128,11 +132,14 @@ Windows yerel UI smoke testi (pencere otomatik açılır ve kapanır):
 .\.venv\Scripts\python.exe tests/ui/native_smoke.py
 ```
 
-M3 doğrulama: tam pytest paketi **185 passed**; iki temada Windows smoke testi **PASS**.
+M4A doğrulama: güncel main başlangıcı **243 passed**, son tam pytest paketi
+**317 passed**; iki temada Windows smoke testi **PASS**.
+Yeni gerçek controller testleri üç Case, yöntem seçim/sıra aktarımı, ortak ızgara,
+parametre/b0 değişiklikleri, adım küçültme, geçersiz girdiler ve taşma aktarımını kapsar.
 Tema kalıcılığı, canvas yaşam döngüsü, metrik/grid doğrulaması ve export UI
 başarı/hata/iptal akışları test edilir; gerçek visualization API başarısı iddia edilmez.
 Görsel olarak kontrol edilen dört görüntü `.venv/ui-m3-{light,dark}-{1440x900,1000x740}.png`
-altında yerel olarak tutulur. M4 için numerical ve visualization API'leri,
+altında yerel olarak tutulur. M4B için Person 4'ün Figure/metrik/export API'leri,
 gerçek grafik tema arayüzünde ekip mutabakatı ve kullanıcı onayı gerekir.
 
 Commit biçimi: `<type>(<scope>): <description>`.
