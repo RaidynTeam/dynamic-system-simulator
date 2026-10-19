@@ -59,7 +59,7 @@ Bağımlılık yönü: `contracts → analytical/numerical/visualization → ui`
 
 ## 3. Ortak sözleşme v0.2 — dört belgede aynıdır
 
-Bu bölüm API v0.2 sözleşmesidir. M1: ortak tipler, doğrulamalar ve sınıflandırma uygulanmıştır; M2 branch’inde solve_analytical yalnız Case 2 için uygulanmıştır. Case 1/3 açık NotImplementedError üretir; grafik/controller fonksiyonları sonraki aşamaların tasarımıdır. Diziler NumPy float64, zaman ve sonuçlar sonlu değerlerdir. `ModelParams`, `SimulationConfig`, `Response`, `ErrorMetrics` frozen dataclass olarak uygulanmıştır. ErrorMetrics iki sonlu, negatif olmayan skaler alır; metrik hesaplaması M1 kapsamında değildir. Aşağıdaki isimler ve alanlar bütün modüllerde aynı kullanılacaktır.
+Bu bölüm API v0.2 sözleşmesidir. M1: ortak tipler, doğrulamalar ve sınıflandırma uygulanmıştır; M3 branch’inde solve_analytical üç Case için y(t) ve v(t) hesaplar. Ortak API v0.2 korunur; grafik/controller hesap bağlantısı ayrı aşamadır. Diziler NumPy float64, zaman ve sonuçlar sonlu değerlerdir. `ModelParams`, `SimulationConfig`, `Response`, `ErrorMetrics` frozen dataclass olarak uygulanmıştır. ErrorMetrics iki sonlu, negatif olmayan skaler alır; metrik hesaplaması M1 kapsamında değildir. Aşağıdaki isimler ve alanlar bütün modüllerde aynı kullanılacaktır.
 
 ```python
 ModelParams(a1: float, a0: float, b0: float)

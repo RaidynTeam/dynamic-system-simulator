@@ -1,4 +1,4 @@
-# Analitik modül — M1 ve M2
+# Analitik modül — M1, M2 ve M3
 
 ## Ne yapıldı ve neden?
 
@@ -24,7 +24,7 @@ Doğrudan a1² hesaplamak büyük değerlerde taşabileceğinden, sınıflandır
 `q=(a1/s)²-(2*sqrt(a0)/s)²`, `s=max(a1,2*sqrt(a0))` ile yapılır.
 `abs(q)<=64*float64_epsilon` kritik kabul edilir. Bu sayıların büyüklüğüne göre
 ölçeklenmiş bir yuvarlama toleransıdır; kesin sembolik eşitlik değildir.
-Tolerans bandı dışında işaret korunur. Kök değerleri hesaplanmaz; M2’de Case 2 için y(t) ve v(t) hesaplanır.
+Tolerans bandı dışında işaret korunur. Kök değerleri hesaplanmaz; M3 itibarıyla üç Case için y(t) ve v(t) hesaplanır.
 
 Durum denklemi: `y'=v`, `v'=b0-a1*v-a0*y` ve y(0)=v(0)=0.
 Numerical modülü aynı modeli kullanacaktır.
@@ -69,7 +69,7 @@ response = solve_analytical(
 Girdi ızgarası float64, sonlu, tek boyutlu, sıfırdan başlayan ve kesin artan
 en az iki örnek olmalıdır. Çözücü ızgarayı üretmez; numerical modülüne ihtiyaç duymaz.
 Sonuç aynı ızgarada y/v ve `method="analytical"` taşır, girdi değiştirilmez.
-Case 1/3 şu anda desteklenmediği için `NotImplementedError` verir.
+M2 aşamasında Case 1/3 desteklenmiyordu; M3 artık üç Case’i de destekler.
 
 ### Küçük zamanlarda hassasiyet
 
@@ -86,20 +86,67 @@ aralığını aşarsa sonuç yerine açık hata verilir.
 Kritik sınıflandırmanın tolerans bandındaki modeller aynı tekrarlı kök
 formülünü kullanır; sınırdaki bu davranış yakın kritik model yaklaşımıdır.
 
+## M3 — Case 1 ve Case 3
+
+### Case 1: karmaşık eşlenik kökler — PDF (8)
+
+`omega=sqrt(a0-sigma²)`, `K=b0/a0`:
+
+`y=K*[1-exp(-sigma*t)*(cos(omega*t)+sigma/omega*sin(omega*t))]`
+
+`v=b0/omega*exp(-sigma*t)*sin(omega*t)`
+
+Başlangıç koşullarından sabit özel çözüm K, homojen çözüm katsayıları
+`C1=-K`, `C2=-K*sigma/omega` elde edilir. Türev alındığında cos terimleri
+birbirini götürür ve yukarıdaki v kalır. Salınım ve son değeri aşma beklenir;
+bu fiziksel davranış hata olarak bastırılmaz.
+
+Kritik sınıra yakın omega küçükken sin(omega*t)/omega yerine
+`t*sinc(omega*t/pi)` kullanılır (NumPy sinc tanımı sin(pi*x)/(pi*x)).
+`1-cos(angle)` yerine `2*sin(angle/2)²` ve `1-exp(-x)` yerine `-expm1(-x)`
+kullanılarak yakın sayıların çıkarılmasındaki kayıp azaltılır.
+
+### Case 3: ayrık gerçek kökler — PDF (10)
+
+`delta=sqrt(sigma²-a0)`, `s1=-sigma+delta`, `s2=-sigma-delta`:
+
+`y=K*[1+s2/(s1-s2)*exp(s1*t)+s1/(s2-s1)*exp(s2*t)]`
+
+`v=b0/(s1-s2)*[exp(s1*t)-exp(s2*t)]`
+
+Katsayılar y(0)=v(0)=0 koşullarından gelir. Üretim kodunda yavaş kök
+`s1=-a0/(sigma+delta)` ile bulunur; bu iki yakın sayıyı çıkarma ihtiyacını kaldırır.
+`gap=2*delta`, `E=-expm1(-gap*t)/gap` kullanılarak
+`y=K*[-expm1(s1*t)+s1*exp(s1*t)*E]`, `v=b0*exp(s1*t)*E`
+hesaplanır. İki gerçek üstel de büyümez; exp*cosh biçiminin ara taşması önlenir.
+
+### Ortak erken zaman koruması
+
+`max(a1,sqrt(a0))*t < 0.01` iken y, diferansiyel denklemden türetilen
+12. derece kuvvet serisiyle değerlendirilir. `y=sum(c_n*t^n)` için
+`c0=c1=0`, `c2=b0/2` ve
+`c_n=-(a1*(n-1)*c_(n-1)+a0*c_(n-2))/(n*(n-1))`.
+Kod önce `b0*t²` çarpanını ayırıp boyutsuz küçük terimlerle çalışır;
+v aynı serinin türevidir. Böylece üç Case için de t=1e-12 gibi örneklerde
+başlangıç cevabı sıfıra yuvarlanmaz. M2’nin özel erken-zaman serisi bu ortak
+korumayla değiştirilmiştir.
+
+Kritik sınıflandırma toleransı ve API v0.2 aynıdır. Aşırı girdilerde
+float64 ara taşması açık FloatingPointError verir; sınırsız aralık iddia edilmez.
+
 ## Durum kaydı
 
-- Sözleşme: v0.2; M2 ortak API imzasını değiştirmez.
-- M1 branch/commit: feat/analytical-m1 / c7d05f9.
-- M1 push ve PR tamam: https://github.com/RaidynTeam/dynamic-system-simulator/pull/1
-- M1 PR #1 kullanıcı tarafından merge edildi; origin/main üzerinden doğrulandı.
-- M2 branch: feat/analytical-m2; M1 merge sonrası güncel origin/main üzerine rebase edildi.
-- M2 uygulama/testleri tamam; güncel main üzerine yalnız M2 değişiklikleriyle incelemeye hazır.
-- Test: `.venv/bin/python -m pytest -q` → 91 passed (70 M1 + 21 M2).
-- Kanıt: `docs/evidence/analytical-m2-tests.txt`.
-- M2 testleri bağımsız yüksek hassasiyetli Decimal referansı, başlangıç koşulları,
-  limit, monotonluk, model denklemi, b0 ölçekleme, küçük zaman, düzensiz ızgara,
-  veri sahipliği, geçersiz giriş ve desteklenmeyen Case'leri kapsar.
-- Ortamda editable .pth kaydı src yolunu eklemiyordu; M1'de pytest
-  pythonpath=["src"] ayarı ile testler kurulum durumundan bağımsız hale getirildi.
-- Sıradaki görev: M3, PDF (8) ve (10) ile Case 1/3 ve kritik sınıra yakın doğruluk.
-- Numerical modülünden yanıt/bitmiş API beklenmiyor; ortak API v0.2 korunuyor.
+- Sözleşme: v0.2, imza aynı: `solve_analytical(model,t) -> Response`.
+- M1 PR #1 ve M2 PR #3 main’e merge edildi.
+- Branch: feat/analytical-m3; başlangıç main commit’i bb9a9d7.
+- M3 yerel uygulama ve testleri tamam; push/PR/review/merge yapılmadı.
+- Test: `QT_QPA_PLATFORM=offscreen MPLBACKEND=Agg .venv/bin/python -m pytest -q`
+  → 122 passed; analitik, ortak sözleşme, UI ve entegrasyon testleri birlikte geçti.
+- Kanıt: `docs/evidence/analytical-m3-tests.txt`.
+- Yeni testler: üç Case için 80 basamaklı Decimal referansı; kritik sınıra iki yandan
+  yaklaşım; küçük zamanlar; ayrık köklerde geniş ölçek; farklı doğal frekanslar;
+  son değer, b0 ölçekleme, monotonluk/salınım; y/v türev tutarlılığı ve ODE artığı.
+- M2’deki artık geçersiz “Case 1/3 desteklenmiyor” testleri kaldırıldı.
+- Numerical ekibinden blokaj yok. Sıradaki görev M4: numerical modülü hazır
+  olduğunda aynı ızgarada Euler/RK4 karşılaştırması ve deney/rapor kanıtı.
+- Arayüzün hesaplama katmanına bağlanması Kişi 3’e; grafik üretimi Kişi 4’e aittir.
