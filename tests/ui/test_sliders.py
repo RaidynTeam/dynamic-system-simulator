@@ -68,7 +68,9 @@ def test_auto_dt_follows_a0_without_quantizing_formula(window):
     window.a0.slider.setValue(400)
     assert window.dt.value() == 0.1 * pi
     assert window.auto_dt.isChecked()
-    assert float(window.dt.readout.text().removesuffix(" s")) == pytest.approx(0.1 * pi, rel=1e-11)
+    assert window.dt.readout.text() == "0.3142 s"
+    assert window.dt.value() == 0.1 * pi
+    assert "0.314159265358979" in window.dt.readout.toolTip()
 
 
 def test_manual_override_and_reenable_auto(window):
@@ -90,9 +92,8 @@ def test_preset_updates_sliders_and_restores_auto(window, index):
     window.b0.slider.setValue(250)
     window.a0.slider.setValue(400)
     window.dt.setValue(0.01)
-    window.case_selector.setCurrentIndex(3)
-    window.case_selector.setCurrentIndex(index)
-    assert window.case_selector.currentIndex() == index
+    window.case_buttons[index].click()
+    assert window.case_group.checkedId() == index
     assert window.a1.slider.value() == (index + 1) * 100
     assert window.a0.slider.value() == 100
     assert window.b0.slider.value() == 250
@@ -139,11 +140,10 @@ def test_sample_budget_feedback_and_recovery(window):
     assert not window.status.text().startswith("Input error:")
 
 
-def test_separate_start_end_controls_and_api_start_constraint(window):
-    assert window.t0.isReadOnly()
-    assert window.t0.text() == "0"
+def test_end_control_and_fixed_api_start_constraint(window):
+    assert window.input_state().t0 == 0
     window.t_end.setText("2.5e1")
     assert window.input_state().config_kwargs()["t_end"] == 25
-    window.t0.setText("1")  # Defensive programmatic configuration corruption.
-    window.run_button.click()
-    assert "Start time must be zero" in window.status.text()
+    from dss.ui.state import LabInputs
+    with pytest.raises(ValueError, match="Start time must be zero"):
+        LabInputs(t0=1).validate()
