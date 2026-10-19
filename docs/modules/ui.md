@@ -1,4 +1,71 @@
-# UI — Person 3, M2
+# UI — Person 3, M2.5
+
+## Current milestone: M2.5 visual redesign
+
+M2 PR #4 and color PR #6 were confirmed merged before editing. With a clean
+working tree, main was fast-forwarded to e2c455f and `feat/ui-m25-redesign`
+created. The user's pasted task and supplied reference image define this layout.
+
+The rejected dark group-box screen is replaced with the requested two-column
+light interface: a single compact System Controls card (35%), three visible
+Case buttons, all four sliders with labels/values aligned above each track,
+Auto dt and half/double actions, end time, method toggles and a full-width Run
+button. The results column (65%) has System Response, a dominant white canvas
+and a compact Error Metrics / No results yet empty state. A narrow footer carries
+ready, error or unavailable feedback. There are no scroll panes, group boxes,
+oversized metric tables, API explanations or milestone/development banners.
+
+`ui/theme.py` explicitly sets QApplication's Fusion style, light QPalette,
+font and widget stylesheet, including backgrounds, text, inputs and slider
+tracks. It does not rely on Windows theme. Background #F8FAFC, cards #FFFFFF,
+text #0F172A, secondary #64748B, border #E2E8F0, primary #2563EB, success
+#0D9488, warning #F97316 and error #DC2626. Method colors remain Exact #475569,
+Euler #FF1D8D and RK4 #2563EB. Matplotlib contains only a white Figure and
+placeholder text; no visualization algorithm has been touched. Person 4's
+Euler line/marker/legend handoff remains in the color addendum below.
+
+The existing state/controller boundary, slider scales, bounds, internal float
+precision, Auto dt, half/double behavior, validation and API v0.2 mapping are
+preserved. dt shows four decimal places for values >=0.001 and three significant
+digits below that; the full 17-digit float is available in the tooltip and
+accessible description. Display formatting never changes the stored value.
+Case buttons are exclusive; manual a1/a0 edits clear the selected preset.
+Re-clicking any Case restores its parameters and Auto dt. Re-enabling Auto is
+the compact replacement for the old separate Reset button. Start time remains
+fixed at zero in LabInputs/API and is explained in the end-time tooltip; its
+redundant read-only field is removed. End time remains editable.
+
+Initial status is Ready to simulate, meaning the form is valid, not that a real
+simulation is integrated. Run explicitly reports “Simulation is not connected
+yet. No results have been calculated.” No mathematical or integration feature
+was added. No sample or fabricated output is displayed.
+
+### M2.5 verification and handoff
+
+- Branch: `feat/ui-m25-redesign`; commit hashes: see Git/PR history.
+- Full pytest: **162 passed**; native Windows smoke: **PASS**. Tests retain
+  lifecycle, presets, full-precision Auto dt, slider bounds, half/double, method
+  selection, invalid configuration feedback, shared API and isolated startup
+  coverage. Presentation tests now expect Case buttons and a compact empty state.
+- New theme/layout checks override a dark palette and verify explicit light
+  colors, the white Figure, all controls fully visible without scrolling at
+  both target/minimum sizes, result-column dominance and compact footer.
+- Native application launched at 1440×900 and supported minimum 1000×740
+  logical pixels. Both screenshots visually inspected before committing:
+  `.venv/ui-m25-native-1440x900.png` and `.venv/ui-m25-native-minimum.png`.
+  Native captures are normalized to logical pixel dimensions on scaled Windows
+  displays. Four sliders, three Cases, methods and Run fit without clipping or
+  overlap. Light rendering and the Euler pink identity match the reference.
+- Compared with the rejected native M2 captures: dark system palette, nested
+  borders, long numeric labels and scrolling are removed; the plot remains the
+  dominant results area. Screenshots remain local ignored verification artifacts.
+- Limitations: supported minimum is now 1000×740; smaller windows are prevented.
+  No human interactive acceptance is claimed. Actual results/export and plotting
+  integration remain deferred. The user's reference sketch is followed in
+  structure; standard accessible slider handles and editable end time remain.
+- Status: M2.5 implemented, pending team review. Stop here; M3 requires approval.
+
+## Historical M2 and color records (superseded where M2.5 differs)
 
 ## Method identity color addendum
 
