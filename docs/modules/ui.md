@@ -1,4 +1,89 @@
-# UI — Person 3, M1
+# UI — Person 3, M2
+
+## Current milestone: M2 slider controls
+
+M1 was confirmed merged in `origin/main` at `bb9a9d7`. The working tree was
+clean, remote deletion of feat/ui-m1 was confirmed, main was updated using
+`git pull --ff-only origin main`, and a fresh `feat/ui-m2` was created from it.
+The old M1 branch was not reused. Current AGENTS.md, API v0.2, role guide,
+source, tests, README and this handoff were read before edits. The PDF's relevant
+model/case/task text on pages 1, 2 and 5 was re-read for M2.
+
+### Controls and state flow
+
+`ui/slider_input.py` adapts an integer QSlider to a float value and a read-only
+numeric QLabel. It emits valueChanged or valueRejected; invalid requests keep
+the previous value and report why. Widgets, immutable LabInputs, controller and
+the existing Matplotlib placeholder retain the M1 dependency structure.
+
+| Input | Slider mapping | UI range |
+|---|---|---|
+| a1, a0, b0 | value = integer / 100 | 0.01–20.00, step 0.01 |
+| dt | value = 10 ** (-6 + integer / 200) | 1e-6–10 s, integers 0–1400 |
+
+These ranges are UI choices, not academic coefficient bounds. Range labels and
+tooltips make them visible. Off-grid coefficient setter requests are rejected,
+not rounded. The label shows coefficients to two decimals and dt to 12
+significant digits. Auto dt and dt / 2 or dt × 2 retain the full float value,
+including values between log ticks; only the thumb position is rounded. Actual
+slider movement selects the corresponding log tick value. This avoids cumulative
+rounding during repeated halving. No coefficient or dt keyboard text box remains;
+standard slider arrow keys are supported for accessibility.
+
+Auto dt starts enabled: dt = 0.1 * 2*pi/sqrt(a0). Changing a0 recomputes dt only
+while enabled. Manual dt changes, including successful halve/double operations,
+disable Auto. Re-enabling Auto, selecting a Case, or Reset restores the formula.
+Case 1/2/3 set a1 to 1/2/3 and a0 to 1, preserve b0, and synchronize readouts and
+thumbs without recursive signals. Editing a1/a0 selects Custom. A rejected
+halve/double request displays an error and keeps the previous dt and Auto mode.
+
+Start/end times have separate QLineEdit controls. Start is read-only at zero
+because the instructor's initial conditions and API v0.2 require t0=0. End time
+accepts dot-decimal/scientific notation; commas are rejected with an example.
+Invalid text stays visible rather than being coerced to a default. The UI checks
+finite positive values, t0=0, methods and estimated sample count
+`ceil((t_end-t0)/dt)+1 <= 1_000_000`. Oversized or overflowing estimates report a
+configuration error. This preflight allocates no grid; numerical code remains
+responsible for its own final grid validation. Valid subsequent edits clear the
+error. Run remains a skeleton action; it never calls real solvers or displays
+fake results. The existing M1_STATUS constant name is retained for compatibility,
+but its displayed text now says UI skeleton.
+
+API v0.2 field adapters are unchanged except that config_kwargs reads explicit
+LabInputs.t0. The legacy general model mapping is retained. No edits to shared
+contracts, numerical, analytical, visualization, dependencies or CI were made.
+
+### M2 verification and handoff
+
+- Contract: ORTAK-SOZLESME-v0.2; branch: `feat/ui-m2`; commits: see Git/PR history.
+- Implementation: M2 complete; M3 not started. Next action is team review.
+- Full `.venv/Scripts/python.exe -m pytest -q`: **137 passed**. Existing M1
+  behavior remains covered alongside analytical and shared-contract tests.
+- New tests cover integer/float/readout synchronization, all three presets,
+  log mapping, exact initial dt, Auto, manual override, restoration, 15 repeated
+  halvings and inverse doublings, coefficient/dt boundaries and rejection,
+  invalid time text, NaN/Inf, overflowing estimates, sample budget and recovery.
+- An intermittent startup-subprocess access violation was found during reruns.
+  Self-capturing button lambdas were replaced with bound Qt slots so closed
+  windows can be released before interpreter shutdown. A weak-reference lifecycle
+  regression test checks this. The startup test now stops/disconnects its owned
+  timers and enables subprocess faulthandler diagnostics; three consecutive
+  isolated startup runs and the final full suite passed after the fix.
+- `.venv/Scripts/python.exe tests/ui/native_smoke.py`: **PASS** on native Windows,
+  using a real Qt event loop and QTest slider key input. Checks sliders, presets,
+  Auto, halving, invalid input, Run, minimum layout and close. Default/minimum
+  rendered images were visually inspected; local evidence is ignored under
+  `.venv/ui-m2-native*.png`. Run stays visible and the input panel scrolls.
+- `git diff --check`: passed. Runtime: Python 3.11.17, PySide6 6.12.0,
+  Matplotlib 3.11.2, pytest 9.1.1. No human desktop acceptance is claimed.
+- Risks: finite slider ranges deliberately restrict the UI parameter space;
+  small windows require scrolling. Native Windows text is readable; the
+  Windows offscreen plugin's font limitation noted in M1 remains.
+- Dependencies: analytical Case 2 is now in main; other solvers and visualization
+  integration remain external work. None are needed for this input milestone.
+- Stop after M2; start M3 only on explicit user approval.
+
+## Historical M1 record (superseded where M2 differs)
 
 ## Scope and source
 
