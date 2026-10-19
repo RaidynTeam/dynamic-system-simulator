@@ -2,12 +2,26 @@
 
 Lab 1 için dört kişinin geliştireceği Python proje iskeleti.
 
-## Durum
+## Durum — M1 UI skeleton
 
-M1: ortak veri yapıları, parametre doğrulaması ve üç Case sınıflandırması hazırdır.
-M2: Case 2 kritik sönüm analitik y(t) ve v(t) çözümü hazırdır. Case 1/3, Euler, RK4, arayüz ve grafik fonksiyonları henüz uygulanmadı.
-Çözücü ve arayüz dosyaları sonraki aşamalar için boştur; şu anda çalışan bir GUI yoktur.
-Lab modeli ve teslim koşulları `docs/lab-requirements.md` içinde kaynak PDF ile eşleştirilmiştir. Ortak API v0.2: `ModelParams(a1,a0,b0)`.
+PySide6 masaüstü arayüzü çalışır: parametreler, Case seçimi, Exact / Euler / RK4
+seçimleri, Run Simulation, Matplotlib canvas, hata metrikleri ve durum alanı.
+Ortak veri tipleri, parametre doğrulaması ve üç Case sınıflandırması hazırdır;
+analitik/Euler/RK4 çözücüleri ve grafik fonksiyonları henüz uygulanmadı.
+Run Simulation hesaplama yapmaz; M1 durum mesajı gösterir. Grafik boştur,
+hata hücreleri “Not calculated” yazar. DEMO veri veya sahte sonuç kullanılmaz.
+
+Hocanın **Lab1 RTS 09102026** yönergesi geliştirme sırasında main'e eklendi:
+[kaynak PDF](docs/reference/Lab1-RTS-09102026.pdf) ve
+[gereksinim eşlemesi](docs/lab-requirements.md). M1 lab modeli:
+`y'' + a1*y' + a0*y = b0*u(t)`,
+birim basamak, sıfır başlangıç koşulları ve pozitif `a1`, `a0`, `b0`.
+Case 1/2/3 sırasıyla `a1=1/2/3`, `a0=1` değerlerini seçer.
+İlk `dt = 0.1 * 2*pi/sqrt(a0)`; kullanıcı daha küçük adım seçebilir.
+`b0=1` ve `t_end=20 s` yalnız düzenlenebilir UI varsayılanlarıdır.
+Ortak API main'de v0.2'ye güncellenmiştir: `ModelParams(a1,a0,b0)`.
+UI state hem v0.2 alanlarını hem görevde istenen eski genel v0.1 alan eşlemesini
+ayrı metotlarla sunar; ortak sözleşme UI tarafından değiştirilmez.
 
 ## Kurulum
 
@@ -20,6 +34,21 @@ python -m pip install --upgrade pip
 python -m pip install -r requirements-dev.txt
 python -m pip install -e .
 ```
+
+Windows PowerShell kurulumu ve çalıştırma:
+
+```powershell
+py -3.11 -m venv .venv
+.\.venv\Scripts\python.exe -m pip install -e ".[dev]"
+.\.venv\Scripts\python.exe -m dss
+```
+
+Aktif Python ortamında diğer platformlarda `python -m dss` kullanın.
+
+Örnek M1 akışı: Case 2 seçin, `b0` ve bitiş zamanını düzenleyin, yöntemleri
+seçin ve Run Simulation'a basın. Hesaplama henüz kullanılamıyor mesajı görünür.
+`a0` değişince veya Case seçilince `dt` ilk lab değerine döner; daha sonra
+elle azaltılabilir. “Reset Δt” düğmesi aynı formülü tekrar uygular.
 
 Tam olarak başlangıçta kurulan üçüncü taraf sürümleri yeniden kurmak için
 `requirements-dev.txt` yerine `requirements.lock.txt` kullanın.
@@ -37,10 +66,23 @@ paket uyumluluğu ayrıca kontrol edilmelidir.
 
 `src/dss/contracts.py` ortak tipleri ve doğrulamaları içerir.
 `docs/team/README.md` içinde görev rehberleri bulunur; her rehber tek başına ajana verilebilir.
+UI mimarisi, API alan eşlemesi ve M1 test kaydı: [docs/modules/ui.md](docs/modules/ui.md).
 
 ## Geliştirme
 
-Test komutu: `python -m pytest -q`. M1 sözleşme/sınıflandırma ve M2 kritik sönüm testleri mevcuttur.
+Her modülün karşılık gelen test klasörü ayrılmıştır. M1 headless testleri:
+
+```powershell
+$env:QT_QPA_PLATFORM = "offscreen"
+.\.venv\Scripts\python.exe -m pytest -q
+Remove-Item Env:QT_QPA_PLATFORM
+```
+
+POSIX: `QT_QPA_PLATFORM=offscreen python -m pytest -q`.
+Testler pencere açılış/kapanışını, gerekli kontrolleri, Case/alan eşlemesini,
+başlangıç adımını, boş seçim mesajını ve eksik modüllerden bağımsız gerçek
+uygulama girişini kontrol eder. Gerçek hesaplama doğruluğunu kanıtlamaz.
+Test komutu: `python -m pytest -q`. M1 sözleşme ve sınıflandırma testleri mevcuttur.
 GitHub Actions yapılandırması testler eklenince Kişi 2 tarafından hazırlanacaktır.
 
 Commit biçimi: `<type>(<scope>): <description>`.
