@@ -1,0 +1,17 @@
+Analytical M5 documentation verification
+Date: 2026-10-19 (Asia/Famagusta)
+Source checkout: main e5e9187; work branch docs/analytical-m5.
+
+Scope: checked analytical derivations and interfaces against the handout mapping and implemented solver/classification/contracts. Read the merged numerical PR #10 solver/time-grid paths and their tests for the role's review requirement. No GitHub approval or message to another team member was posted.
+
+This change adds documentation only. M4 result tables are reused from the existing measured evidence and are not described as new experiments. No application screenshots or student oral-assessment results were fabricated.
+
+Current code verification command:
+QT_QPA_PLATFORM=offscreen MPLBACKEND=Agg .venv/bin/python -m pytest -q
+
+........................................................................ [ 22%]
+........................................................................ [ 45%]
+........................................................................ [ 68%]
+........................................................................ [ 90%]
+.............................                                            [100%]
+317 passed in 4.22s

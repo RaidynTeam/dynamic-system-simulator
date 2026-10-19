@@ -186,11 +186,19 @@ Analitik türetim, kapsam, tolerans ve test kanıtını `docs/modules/analytical
 
 ## 8. Tamamlanma ve ilk görev
 
-- [ ] Sözleşme ve doğrulamalar birleştirildi.
-- [ ] Bütün desteklenen kök/özel durum dalları test edildi.
-- [ ] Yönerge eşleştirmesi doğrulandı veya açık eksik olarak kaydedildi.
-- [ ] Türetim, test çıktısı ve rapor katkısı teslim edildi.
+- [x] Sözleşme ve doğrulamalar birleştirildi.
+- [x] Lab kapsamındaki üç kök dalı test edildi.
+- [x] Yönerge eşleştirmesi kaynak PDF ile doğrulandı.
+- [x] Türetim, test çıktısı ve rapor katkısı dosyaları hazırlandı.
+- [ ] Öğrencinin sözlü savunma provası yapıldı.
 
 Örnek commitler: `feat(contracts): define shared response models`, `feat(analytical): handle repeated roots`, `test(analytical): verify zero-state step response`.
 
 **Ajana ilk görev:** M1 ile başla; önce mevcut depoyu incele, ortak API tasarımını mevcut yapıyla eşleştir ve en küçük sözleşme değişikliğini hazırla. PDF sayfa 1–2 ve 5 modelin kaynağıdır.
+
+## M5 çıktıları
+
+İngilizce katkı: `docs/report/analytical-report.md`. Türkçe savunma rehberi:
+`docs/modules/analytical-defense-tr.md`. Tam teslim/inceleme kaydı:
+`docs/modules/analytical-handoff.md`. Güncel durum `docs/modules/analytical.md`
+içindedir. Dokümantasyonun hazır olması sözlü provanın yapıldığı anlamına gelmez.

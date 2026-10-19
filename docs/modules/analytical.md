@@ -1,4 +1,4 @@
-# Analitik modül — M1, M2, M3 ve M4
+# Analitik modül — M1–M5 teknik teslim
 
 ## Ne yapıldı ve neden?
 
@@ -27,7 +27,7 @@ Doğrudan a1² hesaplamak büyük değerlerde taşabileceğinden, sınıflandır
 Tolerans bandı dışında işaret korunur. Kök değerleri hesaplanmaz; M3 itibarıyla üç Case için y(t) ve v(t) hesaplanır.
 
 Durum denklemi: `y'=v`, `v'=b0-a1*v-a0*y` ve y(0)=v(0)=0.
-Numerical modülü aynı modeli kullanacaktır.
+Numerical modülü aynı modeli kullanır.
 
 ## Kullanım
 
@@ -75,7 +75,7 @@ M2 aşamasında Case 1/3 desteklenmiyordu; M3 artık üç Case’i de destekler.
 
 Doğrudan `1-(1+x)*exp(-x)` ifadesi x çok küçükken birbirine çok yakın
 sayıları çıkarır ve küçük pozitif cevabı sıfır yapabilir. x=sigma*t için
-`-expm1(-x)-x*exp(-x)` kullanılır; x<0.001 bölgesinde ise
+`-expm1(-x)-x*exp(-x)` kullanıldı; M2 sürümünde x<0.001 bölgesinde ise
 `x²/2-x³/3+x⁴/8-x⁵/30+x⁶/144-x⁷/840+x⁸/5760` serisi değerlendirilir.
 Bu dal hem sıfır başlangıcını hem t=1e-12 gibi küçük örnekleri korur.
 Hız hesabı sigma² yerine `K*sigma*x*exp(-x)` olarak düzenlenir.
@@ -164,13 +164,28 @@ vermez. Ayrıntılı tablolar, komut, ortam ve sınırlar
 İki karşılaştırma da seçilen zaman noktalarında yapılır; sürekli zaman boyunca
 hata üst sınırı kanıtlamaz. Grafik/savunma ekran görüntüsü ayrı teslim işidir.
 
+## M5 — Rapor, savunma ve teslim
+
+- [İngilizce rapor katkısı](../report/analytical-report.md): üç Case'in türetimi,
+  kararlılık ve limitler, fonksiyonlar, kayan nokta değerlendirmesi ve M4 sonuçları.
+- [Türkçe savunma rehberi](analytical-defense-tr.md): kısa anlatım, Case 2 tahta
+  örneği, soru-cevap ve kendi başına çözülecek alıştırmalar.
+- [Teslim kaydı](analytical-handoff.md): tamamlanan işler, numerical PR #10
+  teknik incelemesi ve ortak rapora birleştirme adımları.
+- [M5 doğrulama kaydı](../evidence/analytical-m5-verification.txt): güncel kodda
+  tam suite sonucu ve incelemenin kapsamı.
+
+Dokümantasyon hazırdır. Öğrencinin sözlü açıklama yeterliliği henüz
+prova edilmemiştir. Ortak uygulama görselleri ve son ekip raporu ayrıca tamamlanır.
+
 ## Durum kaydı
 
 - Sözleşme: v0.2, imza aynı: `solve_analytical(model,t) -> Response`.
 - M1 PR #1, M2 PR #3 ve M3 PR #5 main’e merge edildi.
-- M3 PR #5 main’e merge edildi; analitik çözümler güncel main içindedir.
 - M4 karşılaştırması main’deki numerical modülle tamamlandı.
-- Doğrulama: Python 3.11.17, macOS, NumPy 2.4.6, pytest 9.1.1; tam suite 243 passed.
+- M4 tarihsel doğrulaması 243 testti. M5 kontrolünde güncel main e5e9187 kodu için tam suite 317 passed (Python 3.11.17/macOS).
 - M4 deney kanıtı: `docs/evidence/analytical-m4-verification.txt`.
 - Deneyleri tekrarlama komutu: `PYTHONPATH=src MPLBACKEND=Agg .venv/bin/python tests/numerical/experiments.py`.
-- Sonraki iş: analitik modülde yeni hesaplama gerekmiyor; ekip görselleri/uygulama entegrasyonu ve rapor teslim hazırlığı devam edebilir.
+- M5 çalışma branch’i: docs/analytical-m5; rapor ve savunma materyali hazır.
+- Kalan bireysel iş: sözlü prova ve kişinin kendi kelimeleriyle açıklama kontrolü.
+- Kalan ekip işi: görselleştirme/Run-to-plot, gerçek ekran görüntüleri ve ortak teslim.
