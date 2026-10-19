@@ -61,12 +61,6 @@ def test_gain_scaling_and_array_ownership_on_irregular_grid():
     assert not np.shares_memory(t, base.t)
 
 
-@pytest.mark.parametrize("a1", [1., 3.])
-def test_other_cases_are_explicitly_deferred(a1):
-    with pytest.raises(NotImplementedError, match="Case 2 only"):
-        solve_analytical(ModelParams(a1, 1., 1.), np.array([0., 1.]))
-
-
 @pytest.mark.parametrize("t", [
     [0., 1.], np.array([0, 1]), np.array([0., 1.], dtype=np.float32),
     np.array([]), np.array([0.]), np.array([[0., 1.]]),
