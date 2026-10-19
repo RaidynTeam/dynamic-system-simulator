@@ -46,6 +46,15 @@ py -3.11 -m venv .venv
 .\.venv\Scripts\python.exe -m dss
 ```
 
+macOS'ta bu çalışma alanı Qt dosyalarını gizli işaretleyebildiğinden uygulamayı
+her zaman proje klasöründen `./run.command` ile açın. Başlatıcı bu işareti
+çalıştırmadan önce otomatik düzeltir. Düzenli kullanım için doğrudan komutlar:
+
+```sh
+/usr/bin/chflags -R nohidden .venv
+PYTHONPATH=src .venv/bin/python -m dss
+```
+
 Aktif Python ortamında diğer platformlarda `python -m dss` kullanın.
 
 Örnek akış: Case 2 düğmesine basın, `b0` slider'ını ve bitiş zamanını düzenleyin, yöntemleri
