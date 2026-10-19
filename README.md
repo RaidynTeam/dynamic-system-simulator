@@ -2,17 +2,26 @@
 
 Lab 1 için dört kişinin geliştireceği Python proje iskeleti.
 
-## Durum — M2.5 light UI redesign
+## Durum — M3 theme switching & visualization UI (PARTIAL)
 
-PySide6 arayüzü Windows koyu temada olsa bile açık tema kullanır. Solda tek
+PySide6 arayüzünde varsayılan açık tema ve sağ üstte güneş/ay düğmesiyle anlık
+koyu tema geçişi vardır. Seçim QSettings ile sonraki açılışta hatırlanır;
+Windows sistem teması arayüzü belirlemez. Solda tek
 System Controls kartı, görünür Case düğmeleri, dört slider ve Run Simulation;
-sağda geniş beyaz Matplotlib canvas ve kompakt hata metrikleri boş durumu vardır.
+sağda temayla eşleşen Matplotlib canvas ve kompakt hata metrikleri boş durumu vardır.
 Alt satır hazır/hata/henüz bağlanmamış simülasyon durumunu gösterir.
 Ortak veri tipleri, parametre doğrulaması ve üç Case sınıflandırması hazırdır;
 analitik üç Case çözümü main'de mevcuttur; sayısal çözücüler ve grafik
 entegrasyonu için diğer üyelerin çalışmaları devam eder.
 Run Simulation hesaplama yapmaz; UI durum mesajı gösterir. Grafik boştur,
 metrik alanı “No results yet” yazar. DEMO veri veya sahte sonuç kullanılmaz.
+
+Sonuç başlığında Response/Error seçimi ve PNG/PDF düğmeleri hazırlanmıştır;
+gerçek sonuç yokken kapalıdır. Person 4'ün Figure/metrik/export API'leri hâlâ
+boştur. UI bağlantıları yalnız izole test doubles ile doğrulandı; gerçek
+visualization entegrasyonu **PARTIAL** durumundadır. M4 çözücü akışı eklenmedi.
+Gelecekte `MainWindow.show_responses()` shared Response nesnelerini doğrular ve
+Figure/metrik üretimini Person 4'e bırakır; yazmayı export_figure'a devreder.
 
 Hocanın **Lab1 RTS 09102026** yönergesi geliştirme sırasında main'e eklendi:
 [kaynak PDF](docs/reference/Lab1-RTS-09102026.pdf) ve
@@ -44,6 +53,15 @@ Windows PowerShell kurulumu ve çalıştırma:
 py -3.11 -m venv .venv
 .\.venv\Scripts\python.exe -m pip install -e ".[dev]"
 .\.venv\Scripts\python.exe -m dss
+```
+
+macOS'ta bu çalışma alanı Qt dosyalarını gizli işaretleyebildiğinden uygulamayı
+her zaman proje klasöründen `./run.command` ile açın. Başlatıcı bu işareti
+çalıştırmadan önce otomatik düzeltir. Düzenli kullanım için doğrudan komutlar:
+
+```sh
+/usr/bin/chflags -R nohidden .venv
+PYTHONPATH=src .venv/bin/python -m dss
 ```
 
 Aktif Python ortamında diğer platformlarda `python -m dss` kullanın.
@@ -110,10 +128,12 @@ Windows yerel UI smoke testi (pencere otomatik açılır ve kapanır):
 .\.venv\Scripts\python.exe tests/ui/native_smoke.py
 ```
 
-M2.5 doğrulama: tam pytest paketi **162 passed**; Windows smoke testi **PASS**.
-Görsel olarak kontrol edilen görüntüler `.venv/ui-m25-native-1440x900.png` ve
-`.venv/ui-m25-native-minimum.png` altında yerel olarak tutulur.
-M3 ve gerçek hesaplama entegrasyonu bu aşamaya dahil değildir.
+M3 doğrulama: tam pytest paketi **185 passed**; iki temada Windows smoke testi **PASS**.
+Tema kalıcılığı, canvas yaşam döngüsü, metrik/grid doğrulaması ve export UI
+başarı/hata/iptal akışları test edilir; gerçek visualization API başarısı iddia edilmez.
+Görsel olarak kontrol edilen dört görüntü `.venv/ui-m3-{light,dark}-{1440x900,1000x740}.png`
+altında yerel olarak tutulur. M4 için numerical ve visualization API'leri,
+gerçek grafik tema arayüzünde ekip mutabakatı ve kullanıcı onayı gerekir.
 
 Commit biçimi: `<type>(<scope>): <description>`.
 Geliştirme feature branch ve gözden geçirilmiş PR üzerinden ilerler.
