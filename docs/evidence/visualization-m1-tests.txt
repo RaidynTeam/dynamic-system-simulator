@@ -1,0 +1,22 @@
+Visualization M1 test record
+Date: 19 October 2026
+Interpreter: Python 3.12.0 on Windows 11
+NOTE: the repository targets Python 3.11 (.python-version, CI). Only 3.12 is
+installed on this machine, so tests/ui cannot be collected here; see
+docs/modules/visualization.md for the diagnosis. The visualization module
+itself imports no Qt, so its own suite is unaffected.
+
+$ MPLBACKEND=Agg python -m pytest tests/visualization -q
+.........................................................                [100%]
+57 passed in 2.11s
+
+$ MPLBACKEND=Agg python -m pytest tests/visualization tests/analytical tests/numerical tests/integration -q
+=========================== short test summary info ===========================
+FAILED tests/integration/test_startup.py::test_entry_point_without_unfinished_modules
+1 failed, 301 passed in 3.97s
+
+The single failure is NOT caused by this branch. It reproduces on unmodified
+main with the same interpreter: PySide6 6.12.0's shibokensupport import hook
+calls inspect.getsource() on six.moves, whose loader lost module_repr() support
+in Python 3.12. 'import PySide6.QtWidgets; import matplotlib.dates' fails the
+same way with no pytest involved.

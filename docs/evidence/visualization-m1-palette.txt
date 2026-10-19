@@ -1,0 +1,47 @@
+Visualization M1 curve palette measurements
+Date: 19 October 2026
+
+Measured, not estimated. Checks: OKLCH lightness band, chroma floor,
+colour-vision-deficiency separation (OKLab dE x100), normal-vision
+separation, and WCAG contrast of each curve against the chart surface.
+Surfaces are the UI card colours from docs/modules/ui.md.
+
+== LIGHT, surface #FFFFFF, agreed identities ==
+Palette (light, surface #FFFFFF, categorical): 3 slots
+  [PASS] Lightness band         all 3 inside L 0.43–0.77
+  [FAIL] Chroma floor           below floor (reads gray): [["#475569",0.037]]
+  [PASS] CVD separation         worst adjacent #FF1D8D↔#475569 ΔE 8.4 (protan) · tritan 34.6
+  [PASS] Normal-vision floor    worst adjacent #FF1D8D↔#475569 ΔE 33.9 (normal)
+  [PASS] Contrast vs surface    all 3 >= 3:1
+
+
+== DARK, surface #1E293B, the same agreed identities ==
+Palette (dark, surface #1E293B, categorical): 3 slots
+  [FAIL] Lightness band         outside band: [["#475569",0.446]]
+  [FAIL] Chroma floor           below floor (reads gray): [["#475569",0.037]]
+  [PASS] CVD separation         worst adjacent #FF1D8D↔#475569 ΔE 8.4 (protan) · tritan 34.6
+  [PASS] Normal-vision floor    worst adjacent #FF1D8D↔#475569 ΔE 33.9 (normal)
+  [WARN] Contrast vs surface    below 3:1 — relief required (visible labels or table view): [["#475569",1.93],["#2563EB",2.83]]
+
+
+== DARK, surface #1E293B, the variant this branch ships ==
+Palette (dark, surface #1E293B, categorical): 3 slots
+  [FAIL] Lightness band         outside band: [["#CBD5E1",0.869],["#60A5FA",0.714]]
+  [FAIL] Chroma floor           below floor (reads gray): [["#CBD5E1",0.02]]
+  [PASS] CVD separation         worst adjacent #60A5FA↔#FF1D8D ΔE 16.7 (deutan) · tritan 35.9
+  [PASS] Normal-vision floor    worst adjacent #60A5FA↔#FF1D8D ΔE 32.8 (normal)
+  [PASS] Contrast vs surface    all 3 >= 3:1
+
+
+Reading of the results:
+- On the light card the agreed identities pass every check that applies.
+- On the dark card Exact #475569 reaches 1.93:1 and RK4 #2563EB 2.83:1,
+  both under the 3:1 floor for non-text marks. This is the measurement
+  behind the dark-mode proposal in docs/modules/visualization.md.
+- The shipped dark variant clears 3:1 for all three and raises the worst
+  adjacent CVD separation from 8.4 to 16.7.
+- The chroma-floor FAIL on the reference curve is deliberate: Exact is
+  intentionally neutral grey, and line style carries the identity so the
+  distinction never depends on colour alone.
+- The dark lightness-band FAIL is the generic band for a mid-tone surface;
+  the dark card needs lighter steps than the band allows.
