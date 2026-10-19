@@ -7,7 +7,7 @@ Lab 1 için dört kişinin geliştireceği Python proje iskeleti.
 PySide6 masaüstü arayüzü çalışır: parametreler, Case seçimi, Exact / Euler / RK4
 seçimleri, Run Simulation, Matplotlib canvas, hata metrikleri ve durum alanı.
 Ortak veri tipleri, parametre doğrulaması ve üç Case sınıflandırması hazırdır;
-analitik/Euler/RK4 çözücüleri ve grafik fonksiyonları henüz uygulanmadı.
+M3 branch’inde üç Case için analitik çözücü hazırdır. Euler/RK4 ve grafik fonksiyonları henüz uygulanmadı; arayüzün hesaplama bağlantısı ayrı aşamadır.
 Run Simulation hesaplama yapmaz; M1 durum mesajı gösterir. Grafik boştur,
 hata hücreleri “Not calculated” yazar. DEMO veri veya sahte sonuç kullanılmaz.
 
@@ -82,7 +82,7 @@ POSIX: `QT_QPA_PLATFORM=offscreen python -m pytest -q`.
 Testler pencere açılış/kapanışını, gerekli kontrolleri, Case/alan eşlemesini,
 başlangıç adımını, boş seçim mesajını ve eksik modüllerden bağımsız gerçek
 uygulama girişini kontrol eder. Gerçek hesaplama doğruluğunu kanıtlamaz.
-Test komutu: `python -m pytest -q`. M1 sözleşme ve sınıflandırma testleri mevcuttur.
+Test komutu: `python -m pytest -q`. Ortak sözleşme, sınıflandırma ve üç Case için analitik çözüm testleri mevcuttur.
 GitHub Actions yapılandırması testler eklenince Kişi 2 tarafından hazırlanacaktır.
 
 Commit biçimi: `<type>(<scope>): <description>`.

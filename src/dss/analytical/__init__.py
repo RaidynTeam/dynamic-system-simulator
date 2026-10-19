@@ -1,4 +1,4 @@
-"""Analytical classification and the critical-damping response solver."""
+"""Analytical classification and unit-step response solvers for all three cases."""
 
 from .classification import classify_case, classify_roots
 from .solver import solve_analytical
