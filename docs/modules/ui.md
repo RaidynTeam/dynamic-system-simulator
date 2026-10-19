@@ -1,4 +1,106 @@
-# UI — Person 3, M3
+# UI — Person 3, M4A
+
+## Current milestone: M4A — real solver orchestration
+
+Status: **COMPLETE for M4A**. `run_simulation(model, config, methods)` now calls
+the actual team solvers and returns shared Responses. UI Run-to-plot integration
+is intentionally still unavailable and belongs to M4B. No graph or metric
+implementation, worker or additional computational feature was introduced.
+
+### Sync and public APIs
+
+Started with a clean tree; fetched origin, confirmed PRs #9 (M3), #10 (numerical)
+and #11 (analytical M4 verification) merged. Fast-forwarded main to bf033de and
+created fresh `feat/ui-m4a-solvers`. Reviewed AGENTS.md, shared v0.2 contracts,
+owner implementations, UI boundaries, tests and module notes. No open PRs were
+present. Source remains docs/reference/Lab1-RTS-09102026.pdf; this controller
+delegates its unit-step/zero-state calculations entirely to the team APIs.
+
+Connected through public package exports:
+
+| API | Owning module | Signature / result |
+|---|---|---|
+| make_time_grid | dss.numerical | (SimulationConfig) -> float64 time array |
+| solve_analytical | dss.analytical | (ModelParams, t) -> Response |
+| solve_euler | dss.numerical | (ModelParams, t) -> Response |
+| solve_rk4 | dss.numerical | (ModelParams, t) -> Response |
+
+### Controller behavior
+
+Imports of contracts, NumPy and solvers happen only when run_simulation is
+called. Opening the GUI and clicking its still-deferred Run action do not
+import the solver modules. The controller checks actual ModelParams and
+SimulationConfig types and calls shared validate_model / validate_config,
+including revalidation of externally corrupted objects. It rejects empty,
+duplicate or unknown methods before any time grid allocation. The documented
+tuple signature is retained; lists of method names are accepted as well and
+snapshotted to a tuple. Method names remain analytical/euler/rk4.
+
+Exactly one make_time_grid call is made. The same array object is passed to
+every selected solver in requested order; unselected solvers are not executed.
+Analytical is imported only when selected. Importing numerical's public package
+naturally exposes all of its public functions, but calculation occurs only in
+the selected function. Returned objects must be shared Responses, pass the
+shared validator and retain the expected method and exact grid. Responses own
+their own array copies per the shared contract. Inputs and algorithms are not
+modified. No errors are caught, translated, retried or silently skipped, so
+original owner failures propagate and a failed call cannot return partial success.
+
+M1_STATUS is retained as a compatibility name for the UI notice, now explicitly
+“Run-to-plot is not connected yet. No results have been calculated.” This text
+describes the unconnected UI action; the controller itself is functional.
+main_window.py, themes, QSettings, sliders, Cases, method colors and the M2.5
+layout are unchanged. No changes to other members' modules or shared APIs.
+
+### Verification and handoff
+
+- Branch: feat/ui-m4a-solvers; commit hashes: see Git history and PR.
+- Updated-main baseline: **243 passed** (the prior M3 185 tests plus the merged
+  numerical tests). Final full `.venv/Scripts/python.exe -m pytest -q`:
+  **317 passed**, including 74 new controller integration cases.
+- Real Case 1/2/3 outputs tested for all 15 ordered nonempty method selections;
+  correct method order, finite arrays, initial conditions and endpoint grids.
+- Real wrappers verify one grid call, object-identical solver inputs, unchanged
+  model/config transfer, no unselected calculation and Response-owned grid copies.
+- Parameter/gain tests verify response changes and b0 scaling. Initial dt,
+  dt/2 and dt/4 runs verify selected grid transfer and decreasing Euler/RK4 error
+  against actual Exact responses for all three preset Cases. Comparisons are
+  test assertions, not production metric/visualization implementations.
+- Invalid methods, shared-object revalidation, sample limits, actual analytical/
+  Euler/RK4 overflow and unchanged exception identity are tested. No continued
+  calculation after a selected solver fails. The old controller-unavailable test
+  is replaced with missing-input validation; all GUI regression coverage remains.
+- The isolated startup test is unchanged and passes with shared/solver/visualization
+  modules blocked. Two additional subprocess tests execute real controller runs
+  while Qt/Matplotlib/visualization imports are blocked; numerical-only selection
+  also confirms the analytical package is not imported.
+- Native Windows Light/Dark smoke: **PASS** at both supported sizes. Tests still
+  cover Case buttons, sliders, Auto dt/halving, methods, validation, truthful Run
+  notice, disabled result actions and closing. `git diff --check`: passed.
+
+### Exact remaining dependencies and recommended M4B plan
+
+Person 4's __init__.py, plots.py, metrics.py and export.py remain empty.
+No visualization PR was open. Missing planned public signatures are:
+
+- build_response_figure(responses: list[Response]) -> Figure
+- build_error_figure(reference: Response, candidates: list[Response]) -> Figure
+- compute_error(reference: Response, candidate: Response) -> ErrorMetrics
+- export_figure(figure: Figure, path: pathlib.Path) -> None
+
+Also agree the Qt-independent real-Figure theme interface, including axes/grid/
+text and Exact #475569 / Euler #FF1D8D / RK4 #2563EB curves and legends.
+These are owner dependencies for M4B, not blockers for the completed M4A controller.
+
+After owner APIs and explicit user approval: construct shared model/config from
+the existing UI snapshot, run the controller in a managed worker so large grids
+do not freeze Qt, deliver successful Responses to the existing show_responses
+boundary, and surface failures without stale or partial results. Then verify
+genuine plots/metrics, both themes, repeated runs, shutdown and actual exports
+end to end. No part of that Run-to-plot/worker integration is implemented here.
+Stop after M4A; M4B requires approval.
+
+## Historical M3 record (superseded where M4A differs)
 
 ## Current milestone: M3 — themes and visualization UI
 
