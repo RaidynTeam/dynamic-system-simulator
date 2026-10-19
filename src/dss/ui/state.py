@@ -32,8 +32,12 @@ class LabInputs:
             raise ValueError("Select distinct Exact, Euler, or RK4 methods.")
 
     def model_kwargs(self) -> dict[str, float]:
-        """Future ModelParams(**inputs.model_kwargs()); preserve API v0.1."""
+        """Legacy general ModelParams fields requested in the M1 task (v0.1)."""
         return dict(a2=1.0, a1=self.a1, a0=self.a0, u0=self.b0, y0=0.0, v0=0.0)
+
+    def lab_model_kwargs(self) -> dict[str, float]:
+        """Fields for the team's merged lab ModelParams contract (v0.2)."""
+        return dict(a1=self.a1, a0=self.a0, b0=self.b0)
 
     def config_kwargs(self) -> dict[str, float]:
         """Future SimulationConfig(**inputs.config_kwargs())."""

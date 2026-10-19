@@ -72,7 +72,7 @@ class MainWindow(QMainWindow):
         self.b0 = self._number("b0", 1.0)
         for label, field in (("a₁", self.a1), ("a₀", self.a0), ("b₀ (step gain)", self.b0)):
             form.addRow(label, field)
-        fixed = QLabel("API mapping: a₂ = 1, u₀ = b₀\ny₀ = 0, v₀ = 0, t₀ = 0")
+        fixed = QLabel("Lab: a₂ = 1; y₀ = v₀ = t₀ = 0\nLegacy general API: u₀ = b₀")
         fixed.setWordWrap(True)
         form.addRow(fixed)
         left.addWidget(model)

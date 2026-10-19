@@ -9,8 +9,8 @@ if TYPE_CHECKING:
 
 
 M1_STATUS = (
-    "M1 skeleton: simulation is unavailable until the shared contracts and "
-    "solvers are integrated. No results have been calculated."
+    "M1 skeleton: simulation is unavailable until the shared solvers are "
+    "integrated. No results have been calculated."
 )
 
 
