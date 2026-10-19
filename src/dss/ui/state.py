@@ -1,7 +1,7 @@
 """UI input state; no Qt, solvers, or replacement shared contract types."""
 
 from dataclasses import dataclass
-from math import isfinite, pi, sqrt
+from math import ceil, isfinite, pi, sqrt
 
 
 @dataclass(frozen=True)
@@ -14,16 +14,24 @@ class LabInputs:
     t_end: float = 20.0  # UI convenience, not an instructor requirement.
     dt: float = 0.2 * pi
     methods: tuple[str, ...] = ("analytical", "euler", "rk4")
+    t0: float = 0.0
 
     @staticmethod
     def initial_step(a0: float) -> float:
         return 0.1 * 2 * pi / sqrt(a0)
 
     def validate(self) -> None:
+        if not isfinite(self.t0) or self.t0 != 0:
+            raise ValueError("Start time must be zero for the lab unit-step model.")
         for name in ("a1", "a0", "b0", "t_end", "dt"):
             value = getattr(self, name)
             if not isfinite(value) or value <= 0:
                 raise ValueError(f"{name} must be finite and greater than zero.")
+        if self.t_end <= self.t0:
+            raise ValueError("End time must be greater than start time.")
+        estimated_steps = (self.t_end - self.t0) / self.dt
+        if not isfinite(estimated_steps) or ceil(estimated_steps) + 1 > 1_000_000:
+            raise ValueError("Configuration exceeds 1,000,000 samples; increase dt or reduce end time.")
         if not self.methods:
             raise ValueError("Select at least one method.")
         if len(set(self.methods)) != len(self.methods) or any(
@@ -41,4 +49,4 @@ class LabInputs:
 
     def config_kwargs(self) -> dict[str, float]:
         """Future SimulationConfig(**inputs.config_kwargs())."""
-        return dict(t0=0.0, t_end=self.t_end, dt=self.dt)
+        return dict(t0=self.t0, t_end=self.t_end, dt=self.dt)
