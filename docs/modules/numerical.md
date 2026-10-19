@@ -210,9 +210,21 @@ Yerel bağımlılık sürümleri `docs/evidence/numerical-environment.txt` için
 - Sayısal bölüm: 58 test geçti; mevcut ekip testleri ilk kontrolde 157 geçti.
 - Güncel ekip koduyla tam test: 220 geçti (162 mevcut + 58 sayısal). Kayıt:
   `docs/evidence/numerical-tests.txt`.
-- CI yapılandırmasının bulunması, GitHub çalıştırmasının başarılı olduğu
-  anlamına gelmez; uzak çalışma sonucu ayrıca kontrol edilecektir.
+- Sayısal kod PR #10 ile main'e alındı. Main `2b51883` için Windows/Python 3.11
+  [CI çalışması başarılı](https://github.com/RaidynTeam/dynamic-system-simulator/actions/runs/39309145462).
+  Bu, yukarıdaki yerel Python 3.14 test kaydından ayrı doğrulanmış sonuçtur.
 - Kalan ekip işi: gerçek controller/grafik entegrasyonu, 5-6 çalışan uygulama
   ekran görüntüsü, ortak rapor ve teslim paketi. Sayısal API kullanıma hazırdır.
 - Öğrenme: temel açıklama ve alıştırmalar hazır; öğrencinin sözlü açıklama
-  yeterliliği henüz değerlendirilmedi.
+  yeterliliği henüz değerlendirilmedi; Türkçe anlatım kullanıcı isteğiyle ertelendi.
+
+## 9. M5 rapor katkısı ve teslim
+
+- [İngilizce rapor bölümü](../report/numerical-report.md) hazır: görev,
+  algoritmalar, API, ölçülen deney tabloları, kararlılık ve sonuç.
+- [Teslim kaydı ve altı ekran görüntüsü senaryosu](numerical-handoff.md) hazır.
+- M5 belge dalı: `docs/numerical-m5`; taban main `bf033de`.
+- M1-M4 teknik işleri tamam. M5'in rapor katkısı hazır; Kişi 4'ün PR incelemesi
+  beklemede. Kontrol anında grafik modülleri boş ve ilgili PR henüz yok.
+- Sıradaki ekip işi: gerçek grafik/controller entegrasyonu ve ekran görüntüleri.
+  Başka kişilerin modülleri bu teslimde değiştirilmedi.
