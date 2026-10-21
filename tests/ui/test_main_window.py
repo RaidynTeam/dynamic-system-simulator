@@ -50,12 +50,12 @@ def test_initial_step_custom_parameters_and_refinement(window):
     assert window.dt.value() == pytest.approx(0.1 * pi, abs=1e-8)
 
 
-def test_run_calculates_without_plots_and_reports_selection_error(window, app, wait_for):
+def test_run_plots_and_reports_selection_error(window, app, wait_for):
     window.show()
     app.processEvents()
     QTest.mouseClick(window.run_button, Qt.MouseButton.LeftButton)
     wait_for(lambda: window._job is None)
-    assert window.status.text() == "Calculation completed. Visualization pending."
+    assert window.status.text() == "Simulation completed. Results loaded."
     assert len(window.last_responses) == 3
     for check in window.method_checks.values():
         check.setChecked(False)
@@ -65,9 +65,9 @@ def test_run_calculates_without_plots_and_reports_selection_error(window, app, w
     QTest.mouseClick(window.run_button, Qt.MouseButton.LeftButton)
     assert window.input_state().methods == ("rk4",)
     wait_for(lambda: window._job is None)
-    assert window.status.text() == "Calculation completed. Visualization pending."
+    assert window.status.text() == "Simulation completed. Results loaded."
     assert tuple(response.method for response in window.last_responses) == ("rk4",)
-    assert not window.figure.axes
+    assert len(window.figure.axes[0].lines) == 1
 
 
 def test_minimum_window_contains_plot_and_status(window, app):

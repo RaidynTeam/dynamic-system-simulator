@@ -10,7 +10,8 @@ os.environ["QT_QPA_PLATFORM"] = "windows"
 
 from PySide6.QtCore import QSettings, QTimer, Qt
 from PySide6.QtTest import QTest
-from PySide6.QtWidgets import QApplication
+from PySide6.QtWidgets import QApplication, QFileDialog
+from PIL import Image
 
 from dss.ui.main_window import MainWindow
 
@@ -28,8 +29,9 @@ def main() -> int:
             assert monotonic() < deadline, "Calculation did not finish"
             QTest.qWait(10)
         assert window.last_responses is not None
-        assert "Visualization pending" in window.status.text()
-        assert not window.export_png.isEnabled()
+        assert "Results loaded" in window.status.text()
+        assert window.export_png.isEnabled()
+        assert len(window.figure.axes[0].lines) == 3
 
     def inspect():
         try:
@@ -89,8 +91,38 @@ def main() -> int:
                     assert window.run_button.visibleRegion().boundingRect().height() >= 40
                     for field in (window.a1, window.a0, window.b0, window.dt):
                         assert field.slider.visibleRegion().boundingRect().height() > 0
-                    path = output / f"ui-m4b1-{mode}-{width}x{height}.png"
+                    path = output / f"ui-m4b2-{mode}-{width}x{height}.png"
                     assert window.grab().scaled(window.size(), Qt.AspectRatioMode.IgnoreAspectRatio, Qt.TransformationMode.SmoothTransformation).save(str(path))
+                # Regenerate the error view from the same accepted responses.
+                window.view_selector.setCurrentIndex(1)
+                app.processEvents()
+                window.canvas.draw()
+                assert len(window.figure.axes[0].lines) == 2
+                error_path = output / f"ui-m4b2-{mode}-error-1000x740.png"
+                assert window.grab().scaled(window.size(), Qt.AspectRatioMode.IgnoreAspectRatio, Qt.TransformationMode.SmoothTransformation).save(str(error_path))
+                original_dialog = QFileDialog.getSaveFileName
+                try:
+                    for view in (0, 1):
+                        window.view_selector.setCurrentIndex(view)
+                        app.processEvents()
+                        for suffix in ("png", "pdf"):
+                            destination = output / f"native-m4b2-{mode}-{view}.{suffix}"
+                            # Select a destination only; the real production exporter runs.
+                            if destination.exists():
+                                destination.unlink()
+                            QFileDialog.getSaveFileName = lambda *a, **k: (str(destination), "")
+                            window.export_current(suffix)
+                            assert window.status.text() == f"Exported {destination.name}"
+                            assert destination.stat().st_size > 1000
+                            if suffix == "png":
+                                with Image.open(destination) as image:
+                                    image.verify()
+                            else:
+                                from pypdf import PdfReader
+                                assert len(PdfReader(destination).pages) == 1
+                finally:
+                    QFileDialog.getSaveFileName = original_dialog
+                window.view_selector.setCurrentIndex(0)
             # A real job is still owned by the window until its finished slot.
             window.run_button.click()
             assert window._job is not None
@@ -100,7 +132,7 @@ def main() -> int:
                 assert monotonic() < deadline
                 QTest.qWait(10)
             assert not window.isVisible()
-            print("PASS: native Windows Light/Dark, real background Run, genuine Responses, pending visualization, sliders, presets, both sizes, close.")
+            print("PASS: native Windows Light/Dark, real background Run, real response/error graphs, metrics, genuine PNG/PDF exports, sliders, presets, both sizes, close.")
             app.exit(0)
         except Exception:
             traceback.print_exc()
@@ -108,7 +140,7 @@ def main() -> int:
             app.exit(1)
 
     QTimer.singleShot(300, inspect)
-    QTimer.singleShot(10000, lambda: app.exit(2))
+    QTimer.singleShot(60000, lambda: app.exit(2))
     return app.exec()
 
 
