@@ -25,7 +25,6 @@ Per file:
 
 --- Delivered in M5 ---
   docs/report/visualization-report.md        English report contribution
-  docs/modules/visualization-defense-tr.md   Turkish oral-defence guide
   docs/modules/visualization-handoff.md      Delivery record
   CONTRIBUTING.md                            Full team Git/PR rules
   docs/modules/visualization.md              Final module notes
