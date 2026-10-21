@@ -1,6 +1,96 @@
-# Görselleştirme — Kişi 4, M3
+# Görselleştirme — Kişi 4, M4
 
-## Güncel milestone: M3 — hata ve metrikler
+## Güncel milestone: M4 — export ve deney kanıtı
+
+Durum: **M4 için TAMAMLANDI**. `export_figure` hazır. Bununla ortak sözleşmedeki
+dört görselleştirme fonksiyonunun **hepsi** var: Kişi 3'ün
+`load_visualization_api()` çağrısı artık başarıyla dönüyor ve M4B-2
+entegrasyonunun önünde görselleştirme kaynaklı engel kalmıyor.
+
+Ortak API v0.2 bozulmadı. Başka kişiye ait dosya değiştirilmedi.
+
+### `export_figure`
+
+```python
+export_figure(figure, path, *, dpi=EXPORT_DPI) -> None
+```
+
+Yazma `figure.savefig` üzerinden yapılır; uzantıya göre doğru backend seçilir ve
+**`figure.canvas` sonradan geri yüklenir**. Bu önemli: Kişi 3 figürü bir
+`FigureCanvasQTAgg` üzerinde gösterirken kullanıcı export'a basarsa, figür o
+widget'tan kopmamalı. Deneyle doğrulandı — PNG ve PDF yazımından sonra
+`figure.canvas` aynı nesne kalıyor, ayrıca bir test bunu sabitliyor.
+
+Kurallar:
+
+- **Klasör yaratılmaz.** Sözleşme bunu UI'a bırakıyor; aksi halde yanlış yazılan
+  bir yol diskte sessizce klasörler açardı. Olmayan klasör açık hata verir.
+- **Tema zemini korunur.** `facecolor` açıkça geçiliyor, yoksa koyu temadaki bir
+  figür beyaz sayfaya düşerdi.
+- **PNG varsayılanı 200 dpi.** Ekrandaki 100 dpi rapor sayfasında yumuşak
+  görünüyor. PDF vektör olduğu için dpi'dan etkilenmiyor.
+- **Başarısızlık iz bırakmaz.** Bu çağrının oluşturduğu dosya hata durumunda
+  silinir; **zaten var olan bir dosyaya dokunulmaz**. Hiç bayt üretmeyen bir
+  yazma da başarı değil hata sayılır. Yani "boş dosya üretip başarı bildirme"
+  maddesi karşılanıyor.
+- Geçersiz uzantı, dizin hedefi, `Figure` olmayan girdi, takas edilmiş argüman
+  sırası ve geçersiz dpi açık `ValueError` verir. Gerçek yazma hatası
+  (ör. salt-okunur dosya) olduğu gibi UI'a iletilir.
+
+### Gözle inceleme — rehberin 4. maddesi
+
+Dışa aktarılan dosyalar üretim `export_figure`'ı üzerinden yazılıp incelendi:
+
+- **PNG** (`case1-h0-light-response.png`, 200 dpi, 1440×900): başlık, eksen
+  etiketleri ve legend tam görünüyor, hiçbiri kesilmiyor; legend veriyle
+  çakışmıyor; Exact'in gri halesi RK4'ün altından ayırt ediliyor. Yazılar
+  200 dpi'da net.
+- **PDF** (`case1-h0-light-error-log.pdf`): **tek sayfa**, 518.4 × 324 punto =
+  tam 7.2 × 4.5 inç, yani figür boyutuyla birebir. Vektör metin keskin, log
+  ekseni ondalık işaretleriyle düzgün, hiçbir öğe kırpılmamış.
+
+PDF'i görüntülemek için ortamda `poppler` yoktu; sayfa PySide6'nın `QPdfDocument`
+motoruyla görüntüye çevrilip incelendi. Yani kontrol **yapıldı**, atlanmadı.
+
+`tests/visualization/preview.py` artık `--format png|pdf|both` kabul ediyor ve
+yazmayı üretim `export_figure`'ına devrediyor — incelediğin dosya, uygulamanın
+Export düğmesinin üreteceği dosyanın aynısı.
+
+### dt deney tablosu — rehberin 5. maddesi
+
+`tests/visualization/error_experiments.py` üç Case için başlangıç adımından
+başlayıp adımı beş kez yarıya indiriyor ve her seviyede gerçek çözücüleri
+gerçek `compute_error` ile ölçüyor. Kayıt:
+[`docs/evidence/visualization-m4-experiments.md`](../evidence/visualization-m4-experiments.md).
+
+Kayıtta parametreler (a1, a0, b0, t0, t_end), yöntem, dt, örnek sayısı,
+`max_abs`, `rmse` ve yazılım sürümleri var. **Tek bir sayı tahmin edilmemiştir.**
+
+Sonuç — bir öncekinin hatasının bu seviyedeki hataya oranı:
+
+| Case | Euler oranı (h0/32'de) | RK4 oranı (h0/32'de) |
+|---|---:|---:|
+| 1 | 2.03 | 16.09 |
+| 2 | 2.02 | 16.34 |
+| 3 | 2.01 | 16.70 |
+
+Adım yarıya inince Euler'in hatası ~2 kat, RK4'ünki ~16 kat azalıyor. Bu, Euler'in
+**birinci**, RK4'ün **dördüncü** mertebe olmasının deneysel karşılığıdır
+(2¹ = 2, 2⁴ = 16). Teoriden türetilmedi, ölçüldü.
+
+Kişi 2'nin `numerical-handoff.md` içindeki altı ölçümü bu tablonun ilgili
+satırlarıyla her basamağına kadar örtüşüyor. **Kişi 2'nin tabloyu onaylaması
+kalıyor** — rehber bu deneyin onunla birlikte hazırlanmasını istiyor.
+
+### M4'ün bilinen eksikleri
+
+- Rapora girecek 5–6 ekran görüntüsü hâlâ **gerçek uygulamadan** alınmalı;
+  bu Kişi 3'ün M4B-2 entegrasyonuna bağlı.
+- Koyu tema eğri renkleri hâlâ Kişi 3'ün onayını bekliyor.
+- Deney tablosu için Kişi 2'nin onayı alınmadı.
+- M5 (rapor katkısı, CONTRIBUTING) henüz yapılmadı.
+
+## Geçmiş kayıt: M3 — hata ve metrikler
 
 Durum: **M3 için TAMAMLANDI**. `compute_error` ve `build_error_figure` hazır.
 Geriye yalnız `export_figure` (M4) kaldı; Kişi 3'ün `load_visualization_api()`
@@ -445,20 +535,21 @@ PySide6/six tarafındaki bu kancanın önce düzelmesi gerekir.
 ## Aşamalar arası durum kaydı
 
 - **Sözleşme sürümü:** v0.2 (değiştirilmedi).
-- **Branch:** `feat/visualization-m3`, `feat/visualization-m2` üzerine kurulu
-  (M2 henüz merge olmadı). M2'nin tabanı main `e71e723`. M1, PR #15 ile main'de.
-- **Tamamlanan milestone:** M1, M2, M3.
-- **Sıradaki görev:** M4 — `export_figure(figure, path)`; PNG ve PDF, geçersiz
-  uzantı/olmayan klasör/yazma hatası kontrollü, boş dosya üretip başarı
-  bildirmeme, dışa aktarılan çıktının gözle incelenmesi. Ardından Kişi 2 ile dt
-  deney tablosu.
-- **Çalıştırılan testler:** tam paket **525 passed** (M2 sonrası 445 + 80 yeni);
-  `tests/visualization` toplam 180 test. Hata grafikleri üç Case'te, iki temada,
-  doğrusal ve log eksende görsel olarak incelendi.
-- **Blokaj:** yok. M3 kimseyi beklemedi.
-- **Başkasından beklenen API:** yok.
-- **Beni bekleyenler:** Kişi 3'ün M4B-2 entegrasyonunun önündeki **tek** eksik
-  artık `export_figure`. `load_visualization_api()` dördünün de var olmasını
-  şart koştuğu için M4 bitene kadar entegrasyon başlayamıyor; Kişi 3'e bu şartın
-  yalnız yanıt grafiği için gevşetilip gevşetilemeyeceği soruldu. Rapordaki
-  5–6 ekran görüntüsü M4B-2'ye bağlı.
+- **Branch:** `feat/visualization-m4`, `feat/visualization-m3` üzerine kurulu.
+  M3 PR #18 ile açık ve `code-eko`'nun incelemesini bekliyor. M1 PR #15, M2
+  PR #17 ile main'de.
+- **Tamamlanan milestone:** M1, M2, M3, M4.
+- **Sıradaki görev:** M5 — `docs/modules/visualization.md` son hali,
+  CONTRIBUTING'e ortak Git/PR kurallarının aktarılması, ortak rapora grafik ve
+  yorum katkısı, Kişi 3'ün PR'ının incelenmesi.
+- **Çalıştırılan testler:** tam paket **565 passed** (M3 sonrası 525 + 40 export
+  testi); `tests/visualization` toplam 220 test. Dışa aktarılan bir PNG ve bir
+  PDF sayfası gözle incelendi. dt deney tablosu üç Case için ölçülüp kaydedildi.
+- **Blokaj:** yok. M4 kimseyi beklemedi.
+- **Başkasından beklenen API:** yok. Dört görselleştirme fonksiyonu da hazır.
+- **Beni bekleyenler / benim beklediklerim:**
+  - Kişi 3: M4B-2 entegrasyonu artık teknik olarak açık; `load_visualization_api()`
+    başarıyla dönüyor ve `prepare_results` uçtan uca denendi. Rapordaki 5–6 ekran
+    görüntüsü buna bağlı.
+  - Kişi 3: koyu tema eğri renklerinin onayı.
+  - Kişi 2: dt deney tablosunun onayı ve M3 PR'ının incelenmesi.

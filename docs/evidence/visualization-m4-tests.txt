@@ -1,0 +1,64 @@
+Visualization M4 test record
+Date: 21 October 2026
+Interpreter: Python 3.11.9 on Windows build 10.0.26200
+Branch: feat/visualization-m4, stacked on feat/visualization-m3 (PR #18, open)
+
+$ QT_QPA_PLATFORM=offscreen MPLBACKEND=Agg python -m pytest -q
+.............................................................            [100%]
+565 passed in 12.15s
+
+$ MPLBACKEND=Agg python -m pytest tests/visualization -q
+....                                                                     [100%]
+220 passed in 5.69s
+
+$ MPLBACKEND=Agg python -m pytest tests/visualization/test_export.py -q
+........................................                                 [100%]
+40 passed in 2.94s
+
+565 = 525 after M3 plus this branch's 40 export tests. No existing test
+was changed or removed.
+
+--- The full visualization API is now available ---
+  load_visualization_api() succeeds; Person 3 receives:
+   - build_response_figure
+   - build_error_figure
+   - compute_error
+   - export_figure
+
+End to end through Person 3's own adapter, with real solvers:
+  response figure curves: 3
+  error figure curves   : 2
+  distinct figures      : True
+  euler max_abs=4.2456625100e-01 rmse=1.5404233297e-01
+  rk4   max_abs=1.1940059470e-03 rmse=4.0023800218e-04
+
+--- Visual inspection of exported files (guide item 4) ---
+Both written through the production export_figure, then looked at.
+
+PNG  case1-h0-light-response.png, 200 dpi, 1440x900:
+  Title, axis labels and legend all fully visible, nothing clipped. The
+  legend does not overlap the data. The Exact curve's grey halo stays
+  distinguishable under the RK4 curve. Text is crisp at 200 dpi.
+
+PDF  case1-h0-light-error-log.pdf:
+  Exactly one page, 518.4 x 324 points = 7.2 x 4.5 inches, matching the
+  figure size. Vector text sharp, log axis decades correct, nothing
+  cropped. poppler was not available in this environment, so the page was
+  rasterised with PySide6's QPdfDocument and inspected. The check was
+  performed, not skipped.
+
+--- Step-halving experiments (guide item 5) ---
+Full record: docs/evidence/visualization-m4-experiments.md
+Reproduce with: python tests/visualization/error_experiments.py
+
+Observed previous-error / this-error at h0/32:
+  Case 1   Euler 2.03   RK4 16.09
+  Case 2   Euler 2.02   RK4 16.34
+  Case 3   Euler 2.01   RK4 16.70
+
+Halving the step divides the Euler error by about 2 and the RK4 error by
+about 16, which is what first and fourth order mean (2^1 and 2^4). These
+ratios were measured, not derived. The rows that overlap Person 2's table
+in docs/modules/numerical-handoff.md agree to every digit; Person 2 still
+needs to sign off on the experiment, which the guide asks to be prepared
+together.
