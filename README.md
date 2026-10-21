@@ -26,10 +26,6 @@ response, and how numerical results compare with an analytical reference. It als
 provides practical experience in scientific programming, modular software design,
 and collaborative engineering.
 
-Course information is available in the [official Fall 2026 course
-outline](https://staff.emu.edu.tr/alexanderchefranov/Documents/CMSE443/CMPE443%20Fall2026/CMSE443%20Outline%2023092026.docx)
-and the [EMU course catalogue](https://student.emu.edu.tr/Public/OfferedCoursesList).
-The assignment specification is included as the [Lab 1 handout](docs/reference/Lab1-RTS-09102026.pdf).
 
 ## The System Model
 

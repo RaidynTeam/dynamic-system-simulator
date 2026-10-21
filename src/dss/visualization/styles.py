@@ -6,7 +6,7 @@ It is the single source of truth for method colors; `dss.ui.colors.METHOD_COLORS
 currently holds a second copy of the light values and Person 3 is asked to
 import from here instead.
 
-Light colors are the identities the team agreed in docs/modules/ui.md. The dark
+Light colors are the identities the team agreed in the UI module notes retained in the local project archive. The dark
 variants are a proposal: measured against the dark card #1E293B, Exact #475569
 reaches only 1.93:1 and RK4 #2563EB only 2.83:1 contrast, below the 3:1 floor for
 non-text marks, so both are lightened for dark mode. Euler #FF1D8D keeps its
