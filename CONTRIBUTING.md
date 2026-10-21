@@ -1,16 +1,15 @@
 # Contribution Guidelines
 
 This document summarizes the Git and pull request practices agreed upon by the
-team. It reflects the shared agreement in
-`docs/team/ORTAK-SOZLESME-v0.2.md` in a format for day-to-day use.
+team. It describes the contribution process for this repository.
 
 **These practices are not currently enforced by GitHub.** The repository's
 branch ruleset is disabled, so following this process relies on the team.
 
 ## Before You Start
 
-Read your role guide under `docs/team/`. `AGENTS.md` and the shared API contract
-are authoritative. Setup and launch instructions are in `README.md`.
+`AGENTS.md` and the public API in `src/dss/contracts.py` are authoritative.
+Setup and launch instructions are in `README.md`.
 
 ## Branches
 
@@ -119,9 +118,8 @@ QT_QPA_PLATFORM=offscreen MPLBACKEND=Agg python -m pytest -q
 ```
 
 - Use the Agg backend for plotting tests (`MPLBACKEND=Agg`).
-- CI runs on Windows with Python 3.11. **Do not use Python 3.12**: the import
-  hook in PySide6 6.12.0 crashes on `six.moves`, preventing the application from
-  starting. See `docs/modules/visualization.md` for details.
+- CI runs on Windows with Python 3.11. Use the Python version specified by the
+  project configuration when running locally.
 - Person 3 also performs an interactive test in a native desktop session.
 
 ## Milestone Completion
@@ -130,7 +128,8 @@ A milestone is complete when all five conditions are met:
 
 - [ ] Its acceptance criteria are satisfied.
 - [ ] Tests pass and their output is recorded.
-- [ ] `docs/modules/<module>.md` and `docs/evidence/` are updated.
+- [ ] Relevant implementation notes or measured results are recorded in
+      `docs/evidence/` when applicable.
 - [ ] Compatibility with the shared API is reviewed.
 - [ ] The pull request has been reviewed.
 

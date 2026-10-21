@@ -59,6 +59,6 @@ Observed previous-error / this-error at h0/32:
 Halving the step divides the Euler error by about 2 and the RK4 error by
 about 16, which is what first and fourth order mean (2^1 and 2^4). These
 ratios were measured, not derived. The rows that overlap Person 2's table
-in docs/modules/numerical-handoff.md agree to every digit; Person 2 still
+in the locally retained numerical handoff notes agree to every digit; Person 2 still
 needs to sign off on the experiment, which the guide asks to be prepared
 together.

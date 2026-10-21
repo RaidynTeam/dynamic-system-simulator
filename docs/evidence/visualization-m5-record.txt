@@ -25,9 +25,9 @@ Per file:
 
 --- Delivered in M5 ---
   English report contribution                retained outside the source repository
-  docs/modules/visualization-handoff.md      Delivery record
+  the locally retained visualization handoff notes      Delivery record
   CONTRIBUTING.md                            Full team Git/PR rules
-  docs/modules/visualization.md              Final module notes
+  the locally retained visualization module notes              Final module notes
 
 --- Still open ---
   Person 3: dark-theme curve colour approval; M4B-2 integration;

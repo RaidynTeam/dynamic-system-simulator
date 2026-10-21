@@ -1,10 +1,9 @@
-# Proje çalışma kuralları
+# Repository guidance
 
-- Bu depo başlangıç iskeletidir. Boş modüller bilinçli bırakılmıştır; yeni görev verilmeden uygulamayı tamamlamaya çalışma.
-- Kendi rolüne ait `docs/team/` rehberini ve ortak sözleşmeyi oku. Kullanıcının güncel talimatları önceliklidir.
-- Kişi 1: contracts/analytical; Kişi 2: numerical/paket/CI; Kişi 3: ui/entegrasyon; Kişi 4: visualization/demo.
-- Kaynaklar `src/dss`, testler `tests` altındadır. Matematik modülleri Qt veya Matplotlib'e bağımlı olmamalıdır.
-- Kaynak yönerge `docs/reference/Lab1-RTS-09102026.pdf`; eşleştirme `docs/lab-requirements.md`. Ortak API v0.2 kullanılır. Deney sonuçlarını uydurma.
-- Başkasının değişikliklerini koru. Ortak API değişikliklerini açıkça bildir.
-- `.venv`, anahtarlar, `.env` ve derleme çıktıları commit edilmez.
-- Test yapılmadıysa bunu açıkça söyle. Commitler Conventional Commits biçimindedir.
+- Follow the user’s current instructions and the public API in `src/dss/contracts.py`.
+- Source code lives under `src/dss`; tests live under `tests`. Mathematical modules must not depend on Qt or Matplotlib.
+- The assignment handout is `docs/reference/Lab1-RTS-09102026.pdf`.
+- Keep measured results factual; do not fabricate test or experiment output.
+- Preserve other contributors’ changes and communicate shared API changes clearly.
+- Do not commit `.venv`, credentials, `.env` files, or build artifacts.
+- If tests were not run, state that clearly. Use Conventional Commits.

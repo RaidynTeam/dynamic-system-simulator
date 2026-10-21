@@ -5,7 +5,7 @@ whether a figure is readable. This builds the production figures from the real
 solvers and writes PNGs for a human to inspect.
 
 The six scenarios are the ones Person 2 proposed for the report screenshots in
-docs/modules/numerical-handoff.md, so what you see here is what the report will
+the numerical handoff notes retained in the local project archive, so what you see here is what the report will
 show once Person 3's M4B-2 integration is in place. Each scenario produces the
 response comparison, the absolute error on a linear axis, and the same error on
 a log axis, where the orders of magnitude between Euler and RK4 are visible.

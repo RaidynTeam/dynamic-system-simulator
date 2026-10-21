@@ -21,7 +21,7 @@ No existing test was changed or removed.
 
 --- Cross-check against Person 2's independent measurements ---
 Person 2 measured these maxima with their own script in
-docs/modules/numerical-handoff.md. Below is what compute_error reports for
+the locally retained numerical handoff notes. Below is what compute_error reports for
 the same six scenarios, printed by tests/visualization/preview.py:
 
 case1-h0-light             dt=0.628319 N=   33  Euler max=4.245663e-01  RK4 max=1.194006e-03
