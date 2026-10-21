@@ -2,11 +2,12 @@
 
 M1 provides the shared method identity, the figure themes and the Qt-free
 Figure factory; M2 adds `build_response_figure`; M3 adds `compute_error`
-and `build_error_figure`. `export_figure` belongs to M4 and is deliberately
-**not** exported yet, so `dss.ui.presentation.load_visualization_api` still
-reports the real state instead of a half-working API.
+and `build_error_figure`; M4 adds `export_figure`. With M4 the four functions
+`dss.ui.presentation.load_visualization_api` looks for all exist, so the UI
+can load the real visualization API.
 """
 
+from .export import EXPORT_DPI, SUPPORTED_SUFFIXES, export_figure
 from .figures import (
     DEFAULT_DPI,
     DEFAULT_SIZE,
@@ -48,6 +49,7 @@ __all__ = [
     "DEFAULT_SIZE",
     "ERROR_LABEL_TEMPLATE",
     "ERROR_SCALES",
+    "EXPORT_DPI",
     "FIGURE_THEMES",
     "FigureTheme",
     "MAX_MARKERS",
@@ -58,12 +60,14 @@ __all__ = [
     "MODES",
     "MethodStyle",
     "OUTPUT_LABEL",
+    "SUPPORTED_SUFFIXES",
     "TIME_LABEL",
     "apply_figure_theme",
     "build_error_figure",
     "build_response_figure",
     "compute_error",
     "error_signal",
+    "export_figure",
     "figure_theme",
     "method_color",
     "method_style",
