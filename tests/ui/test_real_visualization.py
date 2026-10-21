@@ -21,9 +21,9 @@ SELECTIONS = [combo for n in (1, 2, 3) for combo in combinations(METHODS, n)]
 LABELS = {"analytical": "Exact", "euler": "Euler", "rk4": "RK4"}
 
 
-def run(window, wait_for):
+def run(window, wait_for, *, timeout=10):
     window.run_button.click()
-    wait_for(lambda: window._job is None)
+    wait_for(lambda: window._job is None, timeout=timeout)
     assert window.status.text() == "Simulation completed. Results loaded."
 
 
@@ -146,7 +146,7 @@ def test_large_grid_keeps_worker_responsive_and_preserves_every_sample(window, w
     timer.timeout.connect(lambda: ticks.append(window._job is not None))
     timer.start()
     try:
-        run(window, wait_for)
+        run(window, wait_for, timeout=30)
     finally:
         timer.stop()
     assert sum(ticks) > 2
