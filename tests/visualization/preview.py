@@ -15,7 +15,7 @@ directory to put the files somewhere else, and --open to open the folder.
 
     python tests/visualization/preview.py
     python tests/visualization/preview.py C:\\Users\\me\\Desktop\\preview --open
-    python tests/visualization/preview.py --theme both
+    python tests/visualization/preview.py --theme both --format both
 """
 
 import argparse
@@ -31,7 +31,12 @@ from matplotlib.backends.backend_agg import FigureCanvasAgg
 from dss.analytical import solve_analytical
 from dss.contracts import ModelParams, SimulationConfig
 from dss.numerical import make_time_grid, solve_euler, solve_rk4
-from dss.visualization import build_error_figure, build_response_figure, compute_error
+from dss.visualization import (
+    build_error_figure,
+    build_response_figure,
+    compute_error,
+    export_figure,
+)
 
 T_END = 20.0
 
@@ -48,11 +53,13 @@ SCENARIOS = (
 
 
 def save(figure, path):
+    """Write through the production exporter, so what you inspect is what the
+    application's Export button will produce."""
     FigureCanvasAgg(figure).draw()
-    figure.savefig(path, dpi=110, facecolor=figure.get_facecolor())
+    export_figure(figure, path)
 
 
-def render(case, a1, divisor, theme, directory):
+def render(case, a1, divisor, theme, directory, suffixes=(".png",)):
     model = ModelParams(a1=a1, a0=1.0, b0=1.0)
     step = (0.1 * 2 * pi / sqrt(model.a0)) / divisor
     t = make_time_grid(SimulationConfig(t0=0.0, t_end=T_END, dt=step))
@@ -63,24 +70,22 @@ def render(case, a1, divisor, theme, directory):
     stem = f"case{case}-{label}-{theme}"
     head = f"Case {case}   a1={a1:g}  a0=1  b0=1   dt={step:.6f} s   N={t.size}"
 
-    save(
-        build_response_figure([exact, *candidates], theme=theme, title=head),
-        directory / f"{stem}-response.png",
-    )
-    save(
-        build_error_figure(exact, candidates, theme=theme, title=f"{head}   absolute error"),
-        directory / f"{stem}-error.png",
-    )
-    save(
-        build_error_figure(
+    figures = {
+        "response": build_response_figure([exact, *candidates], theme=theme, title=head),
+        "error": build_error_figure(
+            exact, candidates, theme=theme, title=f"{head}   absolute error"
+        ),
+        "error-log": build_error_figure(
             exact,
             candidates,
             theme=theme,
             scale="log",
             title=f"{head}   absolute error, log axis",
         ),
-        directory / f"{stem}-error-log.png",
-    )
+    }
+    for name, figure in figures.items():
+        for suffix in suffixes:
+            save(figure, directory / f"{stem}-{name}{suffix}")
 
     measured = {c.method: compute_error(exact, c) for c in candidates}
     print(
@@ -113,6 +118,12 @@ def main(argv=None):
         default="light",
         help="which theme to render (default: light)",
     )
+    parser.add_argument(
+        "--format",
+        choices=("png", "pdf", "both"),
+        default="png",
+        help="which file formats to export (default: png)",
+    )
     parser.add_argument("--open", action="store_true", help="open the folder afterwards")
     arguments = parser.parse_args(argv)
 
@@ -124,10 +135,11 @@ def main(argv=None):
     directory.mkdir(parents=True, exist_ok=True)
 
     themes = ("light", "dark") if arguments.theme == "both" else (arguments.theme,)
+    suffixes = (".png", ".pdf") if arguments.format == "both" else (f".{arguments.format}",)
     print(f"Writing to {directory}\n")
     for theme in themes:
         for case, a1, divisor in SCENARIOS:
-            render(case, a1, divisor, theme, directory)
+            render(case, a1, divisor, theme, directory, suffixes)
 
     print(
         "\nThree files per scenario: -response, -error, -error-log."
