@@ -1,6 +1,52 @@
-# Görselleştirme — Kişi 4, M4
+# Görselleştirme — Kişi 4, M5
 
-## Güncel milestone: M4 — export ve deney kanıtı
+## Güncel milestone: M5 — rapor ve savunma
+
+Durum: **M5 için TAMAMLANDI**, tek istisnayla: Kişi 3'ün PR'ını inceleme görevi
+açık bir PR olmadığı için bekliyor.
+
+Bu aşamada kod değişmedi. Teslim edilenler:
+
+| Dosya | İçerik |
+|---|---|
+| [`docs/report/visualization-report.md`](../report/visualization-report.md) | Ortak rapora İngilizce katkı |
+| [`docs/modules/visualization-handoff.md`](visualization-handoff.md) | Teslim kaydı ve kalan bağımlılıklar |
+| [`CONTRIBUTING.md`](../../CONTRIBUTING.md) | Ortak Git/PR kurallarının tam hâli |
+| Bu dosya | Metrik tanımı, çizim/export kullanımı, test kanıtı |
+
+### Rapor katkısı
+
+Kişi 1 ve Kişi 2'nin rapor dosyalarıyla aynı yapıda: sorumluluk, tasarım,
+uygulama/arayüzler, deneyler, sonuç, kaynaklar. İçindeki her sayı çalıştırılmış
+betiklerden gelir. Kullanılan ekip katkıları (Kişi 1'in `solve_analytical`,
+Kişi 2'nin çözücüleri ve bağımsız ölçüm tablosu, Kişi 3'ün `presentation.py`
+sınırı ve anlaşılan renkler) kaynak olarak gösterilmiştir.
+
+Raporda kasten **iddia edilmeyen** şey: çözücülerin kendi doğruluğu. O Kişi 1
+ve Kişi 2'nin savunacağı konu; bu katkı yalnız onların çıktısının doğru
+çizildiğini ve doğru ölçüldüğünü savunur.
+
+### CONTRIBUTING
+
+İskelet hâlindeki dosya ekip kurallarının tamamını taşıyacak şekilde
+genişletildi: branch kuralları, doğrudan `main`'e push ve force push yasağı,
+commit türleri ve scope listesi, commit'e girmeyecekler (`.venv`, anahtar,
+uydurma test çıktısı, başkasının yazar bilgisi), PR açıklamasının beş başlığı,
+review halkası, test komutları ve milestone bitiş ölçütleri.
+
+İki madde yaşanmış sorunlardan eklendi: **halkadaki inceleyici müsait değilse**
+başka bir üyenin inceleyebileceği (zorunlu olan "en az bir başka kişi" şartı) ve
+sebebin PR'a yazılması; ve **Python 3.12 kullanılmaması** gerektiği.
+
+### Savunma hazırlığı
+
+Rehberin dört savunma sorusu (RMSE ile maksimum hata farkı, neden aynı zaman
+örnekleri, referans sıfırken yüzde hata, küçük dt'nin ne zaman iyileştirdiği)
+çalışıldı. Cevapların dayandığı ölçümler ve tasarım gerekçeleri bu belgenin
+ilgili bölümlerinde; savunma notlarının kendisi kişisel çalışma malzemesi
+olduğu için depoda tutulmuyor.
+
+## Geçmiş kayıt: M4 — export ve deney kanıtı
 
 Durum: **M4 için TAMAMLANDI**. `export_figure` hazır. Bununla ortak sözleşmedeki
 dört görselleştirme fonksiyonunun **hepsi** var: Kişi 3'ün
@@ -534,22 +580,21 @@ PySide6/six tarafındaki bu kancanın önce düzelmesi gerekir.
 
 ## Aşamalar arası durum kaydı
 
-- **Sözleşme sürümü:** v0.2 (değiştirilmedi).
-- **Branch:** `feat/visualization-m4`, `feat/visualization-m3` üzerine kurulu.
-  M3 PR #18 ile açık ve `code-eko`'nun incelemesini bekliyor. M1 PR #15, M2
-  PR #17 ile main'de.
-- **Tamamlanan milestone:** M1, M2, M3, M4.
-- **Sıradaki görev:** M5 — `docs/modules/visualization.md` son hali,
-  CONTRIBUTING'e ortak Git/PR kurallarının aktarılması, ortak rapora grafik ve
-  yorum katkısı, Kişi 3'ün PR'ının incelenmesi.
-- **Çalıştırılan testler:** tam paket **565 passed** (M3 sonrası 525 + 40 export
-  testi); `tests/visualization` toplam 220 test. Dışa aktarılan bir PNG ve bir
-  PDF sayfası gözle incelendi. dt deney tablosu üç Case için ölçülüp kaydedildi.
-- **Blokaj:** yok. M4 kimseyi beklemedi.
-- **Başkasından beklenen API:** yok. Dört görselleştirme fonksiyonu da hazır.
-- **Beni bekleyenler / benim beklediklerim:**
-  - Kişi 3: M4B-2 entegrasyonu artık teknik olarak açık; `load_visualization_api()`
-    başarıyla dönüyor ve `prepare_results` uçtan uca denendi. Rapordaki 5–6 ekran
-    görüntüsü buna bağlı.
-  - Kişi 3: koyu tema eğri renklerinin onayı.
-  - Kişi 2: dt deney tablosunun onayı ve M3 PR'ının incelenmesi.
+- **Sözleşme sürümü:** v0.2 (hiç değiştirilmedi).
+- **Branch:** `feat/visualization-m5`, güncel main `373b1f3` üzerinden açıldı.
+  M1 PR #15, M2 PR #17, M3 PR #18, M4 PR #19 ile main'de.
+- **Tamamlanan milestone:** M1, M2, M3, M4, M5.
+- **Sıradaki görev:** Kişi 3'ün M4B-2 PR'ını incelemek (halka: Kişi 4 → Kişi 3).
+  Kontrol anında açık PR yoktu.
+- **Çalıştırılan testler:** tam paket **565 passed**; `tests/visualization`
+  toplam **220 test** (24 kimlik/tema, 20 figür, 11 örnek veri, 2 izolasyon,
+  43 yanıt grafiği, 24 metrik, 56 hata grafiği, 40 export). M5'te kod
+  değişmedi, sayılar M4'tekiyle aynı.
+- **Blokaj:** yok. Beş milestone'un hiçbiri başka kimseyi beklemedi.
+- **Başkasından beklenen API:** yok.
+- **Benim beklediklerim** (ayrıntı: [teslim kaydı](visualization-handoff.md)):
+  - Kişi 3: koyu tema eğri renklerinin onayı; M4B-2 entegrasyonu; `ui/colors.py`
+    için tek kaynak renk önerisi.
+  - Kişi 2: dt deney tablosunun onayı.
+  - Ortak: gerçek uygulamadan 5–6 ekran görüntüsü, raporun birleştirilmesi,
+    RAR teslim paketi.

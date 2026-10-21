@@ -1,0 +1,42 @@
+Visualization M5 record
+Date: 21 October 2026
+Branch: feat/visualization-m5, from main 373b1f3 (after PR #19)
+
+M5 is documentation only; no source file was changed. The suite is
+therefore unchanged from M4, and is re-run here to confirm that:
+
+$ QT_QPA_PLATFORM=offscreen MPLBACKEND=Agg python -m pytest -q
+.............................................................            [100%]
+565 passed in 14.77s
+
+$ MPLBACKEND=Agg python -m pytest tests/visualization -q
+....                                                                     [100%]
+220 passed in 6.81s
+
+Per file:
+  test_demo_data.py        11 tests collected in 0.59s
+  test_error_plots.py      56 tests collected in 0.57s
+  test_export.py           40 tests collected in 0.54s
+  test_figures.py          20 tests collected in 0.53s
+  test_isolation.py        2 tests collected in 0.02s
+  test_metrics.py          24 tests collected in 0.61s
+  test_plots.py            43 tests collected in 0.80s
+  test_styles.py           24 tests collected in 0.59s
+
+--- Delivered in M5 ---
+  docs/report/visualization-report.md        English report contribution
+  docs/modules/visualization-handoff.md      Delivery record
+  CONTRIBUTING.md                            Full team Git/PR rules
+  docs/modules/visualization.md              Final module notes
+
+--- Still open ---
+  Person 3: dark-theme curve colour approval; M4B-2 integration;
+            single-source colour proposal for ui/colors.py
+  Person 2: sign-off on the step-halving experiment table
+  Team    : 5-6 screenshots from the real application, report merge,
+            RAR submission package
+  Me      : review Person 3's M4B-2 PR (none open at the time of writing)
+
+Every number quoted in the report comes from a script in this repository.
+Reproduce the measurements with tests/visualization/error_experiments.py
+and the figures with tests/visualization/preview.py --format both.
