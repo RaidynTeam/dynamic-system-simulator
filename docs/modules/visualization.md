@@ -74,13 +74,30 @@ değiştirilmedi. Testler üç Case'in gerçek `solve_analytical` / `solve_euler
 olduğu, girdinin değiştirilmediği, çağıranın listesinin yeniden sıralanmadığı ve
 ardışık çağrıların önceki figüre çizgi eklemediği doğrulanıyor.
 
-**Görsel kontrol yapıldı.** Dört figür gerçek çözücü çıktısıyla üretilip
-incelendi: Case 1 ve Case 3, `dt = 0.1*2π/√a0 = 0.6283 s` (N=33), açık ve koyu
-tema; ayrıca Case 1 için `dt = h0/32 = 0.0196 s` (N=1020). Case 1'de Euler'in
-aşımı ve salınımı, Case 3'te aşımsız monoton yükseliş beklendiği gibi görünüyor;
-küçük adımda üç eğri çakışıyor. İşaretçi seyreltme 1020 örnekte doğru çalıştı.
-Bu görüntüler depoya eklenmedi — rapora girecek ekran görüntüleri gerçek
-uygulamadan, Kişi 3'ün M4B-2 entegrasyonundan sonra alınacak.
+**Görsel kontrol yapıldı.** Otomatik testler sayıyı, etiketi ve nesne kimliğini
+doğrular; bir figürün *okunabilir* olup olmadığını söyleyemez. Bunun için
+`tests/visualization/preview.py` eklendi — Kişi 2'nin
+`tests/numerical/experiments.py` betiğiyle aynı kalıpta:
+
+```
+python tests/visualization/preview.py            # 12 PNG, iki tema
+python tests/visualization/preview.py --open     # yazıp klasörü açar
+python tests/visualization/preview.py <klasör> --theme dark
+```
+
+Betik üretim `build_response_figure`'ını gerçek çözücü çıktısıyla çağırır ve
+`docs/modules/numerical-handoff.md` içinde Kişi 2'nin rapor ekran görüntüleri
+için önerdiği **altı senaryoyu** çizer: üç Case, her biri başlangıç adımı `h0`
+ve bir kez küçültülmüş adımla (h0/32, h0/16, h0/8). Çıktı varsayılan olarak
+sistem geçici klasörüne yazılır, depoya hiçbir şey bırakmaz.
+
+İncelenen sonuçlar: Case 1'de Euler'in aşımı ve salınımı, Case 2'de aşımsız
+kritik sönümlü yükseliş, Case 3'te aşımsız monoton yükseliş — üçü de beklendiği
+gibi. Küçültülmüş adımda üç eğri çakışıyor. İşaretçi seyreltme N=1020'de doğru
+çalıştı; Exact eğrisi RK4'ün altından her iki temada da görünüyor.
+
+Bu görüntüler depoya eklenmedi — rapora girecek ekran görüntüleri **gerçek
+uygulamadan**, Kişi 3'ün M4B-2 entegrasyonundan sonra alınacak.
 
 ### M2'nin bilinen eksikleri
 
