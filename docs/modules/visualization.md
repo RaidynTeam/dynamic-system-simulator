@@ -9,7 +9,7 @@ Bu aşamada kod değişmedi. Teslim edilenler:
 
 | Dosya | İçerik |
 |---|---|
-| [`docs/report/visualization-report.md`](../report/visualization-report.md) | Ortak rapora İngilizce katkı |
+| İngilizce rapor katkısı | Nihai rapor hazırlığı için kaynak deposu dışında tutulur. |
 | [`docs/modules/visualization-handoff.md`](visualization-handoff.md) | Teslim kaydı ve kalan bağımlılıklar |
 | [`CONTRIBUTING.md`](../../CONTRIBUTING.md) | Ortak Git/PR kurallarının tam hâli |
 | Bu dosya | Metrik tanımı, çizim/export kullanımı, test kanıtı |

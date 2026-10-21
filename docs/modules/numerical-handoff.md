@@ -13,8 +13,7 @@ Kontrol tabanı: `bf033de` (19 Ekim 2026). Rapor dili İngilizce;
 - [x] M4: 58 sayısal test, yakınsama ve adım yarılama deneyleri.
 - [x] Kod PR #10 ile main'e alındı; main `2b51883` için Windows/Python 3.11
   [CI başarılı](https://github.com/RaidynTeam/dynamic-system-simulator/actions/runs/39309145462).
-- [x] [İngilizce rapor katkısı](../report/numerical-report.md): iş dağılımı,
-  algoritma, fonksiyonlar, deney tabloları, yorum ve sonuç.
+- [x] İngilizce rapor katkısı nihai rapor hazırlığı için kaynak deposu dışında tutulur.
 - [x] [Türkçe teknik notlar](numerical.md): formül-kod ilişkisi, elle örnek,
   kararlılık, kurulum/test komutları ve savunma soruları.
 - [x] [Ölçüm kaydı](../evidence/numerical-experiments.md),

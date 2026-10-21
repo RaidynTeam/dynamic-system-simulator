@@ -198,7 +198,8 @@ Analitik türetim, kapsam, tolerans ve test kanıtını `docs/modules/analytical
 
 ## M5 çıktıları
 
-İngilizce katkı: `docs/report/analytical-report.md`. Türkçe savunma rehberi:
+İngilizce rapor katkısı nihai rapor hazırlığı için kaynak deposu dışında tutulur.
+Türkçe savunma rehberi:
 `docs/modules/analytical-defense-tr.md`. Tam teslim/inceleme kaydı:
 `docs/modules/analytical-handoff.md`. Güncel durum `docs/modules/analytical.md`
 içindedir. Dokümantasyonun hazır olması sözlü provanın yapıldığı anlamına gelmez.
