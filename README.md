@@ -2,7 +2,7 @@
 
 Lab 1 için dört kişinin geliştireceği Python proje iskeleti.
 
-## Durum — M4A real solver orchestration (COMPLETE)
+## Durum — M4B-1 real Run & background execution (COMPLETE)
 
 PySide6 arayüzünde varsayılan açık tema ve sağ üstte güneş/ay düğmesiyle anlık
 koyu tema geçişi vardır. Seçim QSettings ile sonraki açılışta hatırlanır;
@@ -15,15 +15,18 @@ analitik üç Case çözümü, ortak zaman ızgarası, Euler ve RK4 API'leri mev
 `dss.ui.controller.run_simulation(model, config, methods)` tek ızgarada yalnız
 seçili çözücüleri istenen sırayla çalıştırır ve gerçek shared Response listesi döndürür.
 Girdileri ortak doğrulayıcılara devreder; sayısal hataları değiştirmeden iletir.
-Run Simulation düğmesinin hesaplama/grafik bağlantısı M4B'ye bırakılmıştır;
-düğme henüz hesaplama yapmaz ve bunu açıkça bildirir. Grafik boştur,
+Run Simulation artık tek bir doğrulanmış girdi snapshot'ı ile bu controller'ı
+QThread üzerinde çalıştırır. Hesap sürerken “Calculating...” görünür ve ikinci
+Run engellenir. Girdiler değişirse eski sonuç reddedilir; pencere kapanışı aktif
+thread güvenle bitene kadar ertelenir. İptal özelliği yoktur.
+Hesap bitince “Calculation completed. Visualization pending.” gösterilir. Grafik boştur,
 metrik alanı “No results yet” yazar. DEMO veri veya sahte sonuç kullanılmaz.
 
 Sonuç başlığında Response/Error seçimi ve PNG/PDF düğmeleri hazırlanmıştır;
-gerçek sonuç yokken kapalıdır. Person 4'ün Figure/metrik/export API'leri hâlâ
-boştur. UI bağlantıları yalnız izole test doubles ile doğrulandı; gerçek
-visualization entegrasyonu **PARTIAL** durumundadır. M4A controller tamamdır;
-M4B Run-to-plot/worker entegrasyonu eklenmedi.
+bu aşamada kapalıdır. Person 4'ün Visualization M1 Figure/tema yardımcıları
+mevcuttur; tam response/error grafik, metrik ve export API'leri henüz yoktur.
+Gerçek çözücü sonuçları artık UI'dan hesaplanır ve yalnız son geçerli çalışma
+bellekte tutulur; üretim grafikleri oluşturulmaz. M4B-2 görselleştirme kapsamıdır.
 Gelecekte `MainWindow.show_responses()` shared Response nesnelerini doğrular ve
 Figure/metrik üretimini Person 4'e bırakır; yazmayı export_figure'a devreder.
 
@@ -70,8 +73,10 @@ PYTHONPATH=src .venv/bin/python -m dss
 
 Aktif Python ortamında diğer platformlarda `python -m dss` kullanın.
 
-Örnek akış: Case 2 düğmesine basın, `b0` slider'ını ve bitiş zamanını düzenleyin, yöntemleri
-seçin ve Run Simulation'a basın. Hesaplama henüz kullanılamıyor mesajı görünür.
+Örnek akış: Case 2 düğmesine basın, `b0` slider'ını ve bitiş zamanını düzenleyin,
+yöntemleri seçin ve Run Simulation'a basın. Arayüz hesap sırasında kullanılabilir;
+sonuçta hesap tamamlandı/görselleştirme bekliyor mesajı görünür. Çalışırken girdileri
+değiştirirseniz o çalışmanın sonucu atılır; yeni Run için mevcut hesabın bitmesini bekleyin.
 
 - `a1`, `a0`, `b0`: QSlider, 0.01–20.00 aralığı, 0.01 adım ve sayısal değer etiketi.
 - `dt`: logaritmik QSlider, 0.000001–10 saniye, her onluk mertebede 200 adım.
@@ -132,15 +137,17 @@ Windows yerel UI smoke testi (pencere otomatik açılır ve kapanır):
 .\.venv\Scripts\python.exe tests/ui/native_smoke.py
 ```
 
-M4A doğrulama: güncel main başlangıcı **243 passed**, son tam pytest paketi
-**317 passed**; iki temada Windows smoke testi **PASS**.
-Yeni gerçek controller testleri üç Case, yöntem seçim/sıra aktarımı, ortak ızgara,
-parametre/b0 değişiklikleri, adım küçültme, geçersiz girdiler ve taşma aktarımını kapsar.
+M4B-1 doğrulama: güncel main başlangıcı **374 passed**, son tam pytest paketi
+**402 passed**; iki temada Windows smoke testi **PASS**.
+Yeni worker testleri gerçek Run/üç Case/yöntemleri, tek snapshot, gerçek RK4 sırasında
+Qt yanıt verebilirliği, yinelenen tıklamalar, stale-result reddi, hata aktarımı,
+tekrarlanan çalışmaların temizliği ve aktif worker sırasında güvenli kapanışı kapsar.
 Tema kalıcılığı, canvas yaşam döngüsü, metrik/grid doğrulaması ve export UI
 başarı/hata/iptal akışları test edilir; gerçek visualization API başarısı iddia edilmez.
-Görsel olarak kontrol edilen dört görüntü `.venv/ui-m3-{light,dark}-{1440x900,1000x740}.png`
-altında yerel olarak tutulur. M4B için Person 4'ün Figure/metrik/export API'leri,
-gerçek grafik tema arayüzünde ekip mutabakatı ve kullanıcı onayı gerekir.
+Görsel olarak kontrol edilen dört görüntü `.venv/ui-m4b1-{light,dark}-{1440x900,1000x740}.png`
+altında yerel olarak tutulur. M4B-2 için Person 4'ün tam grafik/metrik/export API'leri,
+gerçek grafik renklerinde ekip mutabakatı ve kullanıcı onayı gerekir. UI Euler rengi
+`#FF1D8D` korunur; önerilen yüksek kontrastlı koyu eğri paleti UI belgesinde kayıtlıdır.
 
 Commit biçimi: `<type>(<scope>): <description>`.
 Geliştirme feature branch ve gözden geçirilmiş PR üzerinden ilerler.

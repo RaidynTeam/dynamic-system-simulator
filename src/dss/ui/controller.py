@@ -8,6 +8,8 @@ if TYPE_CHECKING:
     from dss.contracts import ModelParams, Response, SimulationConfig
 
 
+# Retained for compatibility with earlier milestones; the worker UI reports
+# calculation progress and completion directly now.
 M1_STATUS = (
     "Run-to-plot is not connected yet. No results have been calculated."
 )
@@ -26,7 +28,7 @@ def run_simulation(
 
     Imports occur at execution time, so opening the UI needs no solver modules.
     Exceptions propagate unchanged; a failed run never returns partial results.
-    The UI Run action remains separate until M4B.
+    The UI invokes this on its worker; plotting remains separate until M4B-2.
     """
     from importlib import import_module
 

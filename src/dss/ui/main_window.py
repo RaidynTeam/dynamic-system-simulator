@@ -1,6 +1,6 @@
-"""Compact light-theme desktop presentation; calculation remains deferred."""
+"""Frozen compact desktop presentation with real background calculation."""
 
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, Slot
 from PySide6.QtWidgets import (
     QApplication, QButtonGroup, QCheckBox, QComboBox, QFileDialog, QFrame, QHBoxLayout, QLabel,
     QLineEdit, QMainWindow, QMessageBox, QPushButton, QVBoxLayout, QWidget,
@@ -9,7 +9,7 @@ from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg
 from matplotlib.figure import Figure
 
 from dss.ui.colors import METHOD_COLORS
-from dss.ui.controller import M1_STATUS
+from dss.ui.execution import SimulationThread, make_request
 from dss.ui.slider_input import SliderInput
 from dss.ui.state import LabInputs
 from dss.ui.theme import apply_theme, method_style, saved_theme, style_canvas, theme_settings
@@ -23,6 +23,12 @@ class MainWindow(QMainWindow):
         self.theme_mode = saved_theme(self.settings)
         self.theme = apply_theme(QApplication.instance(), self.theme_mode)
         self.prepared_results = None
+        self.last_responses = None
+        self.last_run_inputs = None
+        self._job = None
+        self._pending_outcome = None
+        self._input_revision = 0
+        self._closing = False
         self.setWindowTitle("Dynamic System Simulator — CMPE 443 Lab 1")
         self.setMinimumSize(1000, 740)
         self.resize(1440, 900)
@@ -406,12 +412,23 @@ class MainWindow(QMainWindow):
             widget.style().polish(widget)
 
     def _show_error(self, message: str) -> None:
+        if self._job is not None:
+            message = "Finishing calculation before closing..." if self._closing else f"Calculating... Input error: {message}"
+            self._set_status(message, "notice")
+            return
         self._set_status(f"Input error: {message}", "error")
 
     def _refresh_feedback(self) -> bool:
+        self._input_revision += 1
+        self.last_responses = None
+        self.last_run_inputs = None
         if self.prepared_results is not None:
             self._clear_results()
         self._update_legend()
+        if self._job is not None:
+            message = "Finishing calculation before closing..." if self._closing else "Calculating... Inputs changed; results will be discarded."
+            self._set_status(message, "notice")
+            return False
         try:
             self.input_state().validate()
         except ValueError as error:
@@ -421,5 +438,72 @@ class MainWindow(QMainWindow):
         return True
 
     def _run_requested(self) -> None:
-        if self._refresh_feedback():
-            self._set_status(M1_STATUS, "notice")
+        if self._job is not None or self._closing:
+            return
+        self.last_responses = None
+        self.last_run_inputs = None
+        if self.prepared_results is not None:
+            self._clear_results()
+        self._update_legend()
+        try:
+            request = make_request(self.input_state(), self._input_revision)
+        except Exception as error:
+            self._show_error(str(error))
+            return
+        self._job = SimulationThread(request, self)
+        self._pending_outcome = None
+        self._job.outcome_ready.connect(self._record_outcome)
+        self._job.finished.connect(self._execution_finished)
+        self.run_button.setEnabled(False)
+        self._set_status("Calculating...", "notice")
+        self._job.start()
+
+    @Slot(object)
+    def _record_outcome(self, outcome) -> None:
+        # Queued to the GUI thread. Do not enable another run before finished.
+        self._pending_outcome = outcome
+
+    @Slot()
+    def _execution_finished(self) -> None:
+        job = self._job
+        if job is None:
+            return
+        # Only wait AFTER Qt's finished signal; there is no active solver wait
+        # on the GUI thread. This also joins final native thread cleanup.
+        job.wait()
+        request = job.request
+        outcome = self._pending_outcome or job.outcome
+        self._job = None
+        self._pending_outcome = None
+        job.outcome = None
+        job.deleteLater()
+        self.run_button.setEnabled(not self._closing)
+        if self._closing:
+            self.last_responses = None
+            self.last_run_inputs = None
+            self.close()
+            return
+        try:
+            current = self._input_revision == request.revision and self.input_state() == request.inputs
+        except ValueError:
+            current = False
+        if not current:
+            self._set_status("Calculation finished; inputs changed, results discarded.", "notice")
+        elif outcome is None:
+            self._set_status("Calculation failed without a result.", "error")
+        elif outcome.error is not None:
+            self._set_status(f"Calculation failed: {outcome.error}", "error")
+        else:
+            self.last_responses = outcome.responses
+            self.last_run_inputs = request.inputs
+            self._set_status("Calculation completed. Visualization pending.", "notice")
+
+    def closeEvent(self, event) -> None:
+        if self._job is not None:
+            self._closing = True
+            self._set_status("Finishing calculation before closing...", "notice")
+            event.ignore()
+            return
+        self.last_responses = None
+        self.last_run_inputs = None
+        super().closeEvent(event)

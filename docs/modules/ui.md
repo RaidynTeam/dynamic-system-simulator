@@ -1,4 +1,123 @@
-# UI — Person 3, M4A
+# UI — Person 3, M4B-1
+
+## Current milestone: M4B-1 — real Run and background execution
+
+Status: **COMPLETE for M4B-1**. Run Simulation now calculates actual shared
+Responses using the M4A controller in a background thread. Genuine response
+plotting, metrics and export remain M4B-2 and are deliberately not implemented.
+
+### Repository review
+
+The working tree was clean. Fetched origin; confirmed PR #13 (M4A), #14
+(analytical handoff), and #15 (Visualization M1) merged. Main was fast-forwarded
+to 9d13b2c, then fresh `feat/ui-m4b1-execution` created. Reviewed AGENTS.md,
+shared contracts, UI/controller/state/tests, Visualization M1 sources and public
+exports, and the instructor PDF's task page. No open PRs or newer remote main
+changes were present at final review. Only Person 3 paths are modified.
+
+### Run request and thread lifecycle
+
+`ui/execution.py` defines frozen RunRequest and RunOutcome. A Run click captures
+one immutable LabInputs snapshot, validates it, constructs genuine shared
+ModelParams(a1,a0,b0) and SimulationConfig(t0,t_end,dt), and submits it with the
+current input revision. Shared constructors validate their own contracts. The
+snapshot is read once for submission, then current inputs are checked again only
+when the result is accepted. Internal float precision and method order are preserved.
+
+SimulationThread is a QThread subclass whose run method calls the existing
+controller exactly once. There are no widget operations, algorithms, plotting,
+demo fixtures or cancellation logic in the worker. Real Responses are retained
+as a tuple; original exceptions are carried as objects through outcome_ready.
+The queued GUI slot records the outcome. The finished slot joins final native
+thread cleanup, releases the job/outcome references, schedules thread-object
+deletion and re-enables Run. It never waits for an active solver on the GUI
+thread. The subclass has no persistent event loop; run returns naturally.
+
+Run is disabled and guarded in code while a job exists, including direct or
+queued repeated calls. The footer says Calculating... while work runs. Input
+controls and themes remain responsive. Every input/method/preset change advances
+an input revision and invalidates retained results. A changed-and-restored value
+still rejects the old job. A current successful job stores only last_responses
+and last_run_inputs; replacing, editing or closing releases the previous data.
+Stale jobs complete naturally and report discarded results rather than success.
+Current failures display the original exception message with a calculation-failed
+prefix; no partial or fabricated result is accepted.
+
+Closing during work is deferred, not canceled: closeEvent ignores that request,
+shows Finishing calculation before closing..., and keeps processing Qt events.
+The finished slot drops the outcome and closes the window after joining the
+already-finished thread. No terminate, active-thread destruction or cancellation
+claim is used. A large valid run may therefore take time to finish before close;
+cooperative solver cancellation is outside this scope.
+
+### Visualization boundary and palette handoff
+
+Production success says **Calculation completed. Visualization pending.** The
+existing placeholder and No results yet metric state remain; view/export actions
+stay disabled. This stage does not call show_responses, prepare_results, any
+production graph builder, or dss.demo_data. It only holds one accepted run's real
+Responses for the next integration stage. Startup still imports no shared types,
+solver or visualization modules until the relevant action needs them.
+
+Visualization M1 public APIs were reviewed and left unchanged:
+
+| API | Actual public signature |
+|---|---|
+| new_figure | (mode="light", *, size=(7.2,4.5), dpi=100) -> Figure |
+| style_axes | (axes, mode="light") -> None |
+| apply_figure_theme | (figure, mode="light") -> Figure |
+| plot_kwargs | (method, mode="light") -> dict |
+| method_style | (method, mode="light") -> MethodStyle |
+
+These are foundations, not full response/error plot or export implementations.
+plots.py, metrics.py and export.py still have no required production functions:
+build_response_figure, build_error_figure, compute_error, export_figure. No
+substitutes or duplicate algorithms were added. M4B-2 must reuse the owner's
+Figure/theme/style helpers and agreed real visualization APIs.
+
+Approved UI identities remain Exact #475569, Euler #FF1D8D, RK4 #2563EB.
+Person 4 proposes higher-contrast **dark curves**: Exact #CBD5E1, Euler #FF1D8D,
+RK4 #60A5FA, with separate line styles/markers. These proposal values were not
+applied to the frozen UI indicators/labels. Final real-plot styling agreement
+and curve rebuilding on theme changes belong to M4B-2; apply_figure_theme styles
+axes/backgrounds but intentionally does not repaint existing curve identities.
+
+### Tests, evidence and handoff
+
+- Branch: feat/ui-m4b1-execution; commits: see Git/PR history.
+- Updated-main baseline: **374 passed**. Final full
+  `.venv/Scripts/python.exe -m pytest -q`: **402 passed**, including 28 new
+  execution tests. No new dependencies.
+- Actual Run button tests cover all three Cases and Exact/Euler/RK4 single and
+  combined selections. Snapshot tests check one read, frozen state, genuine
+  shared objects, full parameter transfer and worker thread affinity.
+- Controlled scheduling tests use the real controller after a test-only barrier:
+  Qt heartbeat, repeated Run calls, active theme changes, stale coefficients,
+  times, methods, presets, dt, invalid text and changed-back inputs.
+- A separate Qt heartbeat test runs during an actual 10,000-step RK4 calculation.
+  Worker status updates are checked on the GUI thread. Genuine numerical overflow
+  and original exception identity, invalid input/recovery, repeated worker cleanup,
+  old Response weak-reference release and deferred safe closing are covered.
+- Existing isolated startup still blocks shared/solver/visualization imports.
+  Its old stub-Run click was removed because Run now intentionally requires the
+  real APIs; real Run is independently tested. M1/M2/M2.5/M3/M4A regressions pass;
+  old unavailable-Run assertions now expect actual asynchronous completion.
+- Native Windows Light/Dark smoke: **PASS**, including real Run, genuine Responses,
+  unavailable export, all input controls and close during an active real job.
+  Four native captures inspected at 1440×900 and 1000×740:
+  `.venv/ui-m4b1-light-1440x900.png`, `.venv/ui-m4b1-dark-1440x900.png`,
+  `.venv/ui-m4b1-light-1000x740.png`, `.venv/ui-m4b1-dark-1000x740.png`.
+  The approved 35/65 layout, typography, controls, QSettings and theme behavior
+  remain; no clipping, overlap, white canvas artifacts or scrolling was observed.
+- `git diff --check`: passed. Screenshot artifacts remain local/ignored. Human
+  desktop acceptance and non-Windows native testing are not claimed.
+- Recommended M4B-2: after Person 4 APIs and user approval, pass accepted current
+  Responses through the existing validated presentation boundary, reuse public
+  Figure/theme helpers, and verify genuine plots, matching-grid metrics, both
+  themes and real PNG/PDF output. Retain the revision/worker lifecycle gates.
+- Stop after M4B-1. Do not start M4B-2 without explicit approval.
+
+## Historical M4A record (superseded where M4B-1 differs)
 
 ## Current milestone: M4A — real solver orchestration
 

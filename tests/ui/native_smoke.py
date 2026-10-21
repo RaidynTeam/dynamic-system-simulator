@@ -4,6 +4,7 @@ import os
 from pathlib import Path
 import sys
 import traceback
+from time import monotonic
 
 os.environ["QT_QPA_PLATFORM"] = "windows"
 
@@ -20,6 +21,15 @@ def main() -> int:
     settings.clear()
     window = MainWindow(settings=settings)
     window.show()
+
+    def wait_for_calculation():
+        deadline = monotonic() + 10
+        while window._job is not None:
+            assert monotonic() < deadline, "Calculation did not finish"
+            QTest.qWait(10)
+        assert window.last_responses is not None
+        assert "Visualization pending" in window.status.text()
+        assert not window.export_png.isEnabled()
 
     def inspect():
         try:
@@ -52,7 +62,7 @@ def main() -> int:
             assert window.status.text().startswith("Input error:")
             window.t_end.setText("20")
             window.run_button.click()
-            assert "No results have been calculated" in window.status.text()
+            wait_for_calculation()
             output = Path(".venv")
             for mode in ("light", "dark"):
                 window.set_theme(mode, persist=False)
@@ -64,6 +74,8 @@ def main() -> int:
                 window.auto_dt.setChecked(True)
                 assert window.dt.value() == initial
                 window.case_buttons[0].click()
+                window.run_button.click()
+                wait_for_calculation()
                 for width, height in ((1440, 900), (1000, 740)):
                     window.resize(width, height)
                     app.processEvents()
@@ -77,11 +89,18 @@ def main() -> int:
                     assert window.run_button.visibleRegion().boundingRect().height() >= 40
                     for field in (window.a1, window.a0, window.b0, window.dt):
                         assert field.slider.visibleRegion().boundingRect().height() > 0
-                    path = output / f"ui-m3-{mode}-{width}x{height}.png"
+                    path = output / f"ui-m4b1-{mode}-{width}x{height}.png"
                     assert window.grab().scaled(window.size(), Qt.AspectRatioMode.IgnoreAspectRatio, Qt.TransformationMode.SmoothTransformation).save(str(path))
-            window.close()
+            # A real job is still owned by the window until its finished slot.
+            window.run_button.click()
+            assert window._job is not None
+            assert not window.close()
+            deadline = monotonic() + 10
+            while window._job is not None:
+                assert monotonic() < deadline
+                QTest.qWait(10)
             assert not window.isVisible()
-            print("PASS: native Windows Light/Dark, sliders, presets, Auto dt, halving, invalid input, methods, Run, both sizes, close.")
+            print("PASS: native Windows Light/Dark, real background Run, genuine Responses, pending visualization, sliders, presets, both sizes, close.")
             app.exit(0)
         except Exception:
             traceback.print_exc()

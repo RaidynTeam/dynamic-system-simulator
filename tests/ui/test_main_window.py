@@ -5,7 +5,7 @@ from PySide6.QtCore import Qt
 from PySide6.QtTest import QTest
 from PySide6.QtWidgets import QWidget
 
-from dss.ui.controller import M1_STATUS, run_simulation
+from dss.ui.controller import run_simulation
 
 
 def test_window_opens_and_closes(window, app):
@@ -50,11 +50,13 @@ def test_initial_step_custom_parameters_and_refinement(window):
     assert window.dt.value() == pytest.approx(0.1 * pi, abs=1e-8)
 
 
-def test_run_reports_m1_unavailability_and_selection_error(window, app):
+def test_run_calculates_without_plots_and_reports_selection_error(window, app, wait_for):
     window.show()
     app.processEvents()
     QTest.mouseClick(window.run_button, Qt.MouseButton.LeftButton)
-    assert window.status.text() == M1_STATUS
+    wait_for(lambda: window._job is None)
+    assert window.status.text() == "Calculation completed. Visualization pending."
+    assert len(window.last_responses) == 3
     for check in window.method_checks.values():
         check.setChecked(False)
     QTest.mouseClick(window.run_button, Qt.MouseButton.LeftButton)
@@ -62,7 +64,9 @@ def test_run_reports_m1_unavailability_and_selection_error(window, app):
     window.method_checks["rk4"].setChecked(True)
     QTest.mouseClick(window.run_button, Qt.MouseButton.LeftButton)
     assert window.input_state().methods == ("rk4",)
-    assert window.status.text() == M1_STATUS
+    wait_for(lambda: window._job is None)
+    assert window.status.text() == "Calculation completed. Visualization pending."
+    assert tuple(response.method for response in window.last_responses) == ("rk4",)
     assert not window.figure.axes
 
 
