@@ -1,0 +1,33 @@
+Visualization M2 test record
+Date: 21 October 2026
+Interpreter: Python 3.11.9 on Windows 11 Home 26200
+Base: main e71e723 (after PR #16, Person 3 M4B-1)
+
+$ QT_QPA_PLATFORM=offscreen MPLBACKEND=Agg python -m pytest -q
+.............                                                            [100%]
+445 passed in 9.19s
+
+$ MPLBACKEND=Agg python -m pytest tests/visualization -q
+............................                                             [100%]
+100 passed in 2.53s
+
+$ MPLBACKEND=Agg python -m pytest tests/visualization/test_plots.py -q
+...........................................                              [100%]
+43 passed in 0.95s
+
+445 = the 402 baseline Person 3 reported on updated main, plus this
+branch's 43 tests. No existing test was changed or removed.
+
+The UI adapter still reports the real state; the missing name has moved
+on from build_response_figure, which now exists:
+  Visualization API unavailable: build_error_figure (Person 4).
+
+Visual check (four figures from real solver output, inspected, not committed):
+  Case 1  a1=1  dt=0.6283 s  N=33    light and dark
+  Case 3  a1=3  dt=0.6283 s  N=33    light
+  Case 1  a1=1  dt=0.0196 s  N=1020  light   (marker thinning)
+Euler overshoot and ringing in Case 1, monotone rise with no overshoot in
+Case 3, and all three curves coinciding at the small step. Marker thinning
+held at 40 markers for the 1020-sample grid. These are development renders
+through a throwaway script, not report evidence: the report screenshots
+must come from the real application after Person 3's M4B-2 integration.

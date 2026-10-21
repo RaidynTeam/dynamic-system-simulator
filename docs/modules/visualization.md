@@ -1,6 +1,96 @@
-# Görselleştirme — Kişi 4, M1
+# Görselleştirme — Kişi 4, M2
 
-## Güncel milestone: M1 — bağımsız grafik altyapısı
+## Güncel milestone: M2 — yanıt karşılaştırması
+
+Durum: **M2 için TAMAMLANDI**. `build_response_figure` seçili yöntemlerin y(t)
+eğrilerini tek figürde, ortak zaman ekseninde çiziyor. `compute_error`,
+`build_error_figure` (M3) ve `export_figure` (M4) hâlâ yazılmadı; bu yüzden
+Kişi 3'ün `load_visualization_api()` çağrısı artık eksik olarak
+`build_error_figure`'ı bildiriyor — M1'de `build_response_figure` diyordu.
+İlerleme dürüstçe görünüyor.
+
+Ortak API v0.2 bozulmadı. Başka kişiye ait dosya değiştirilmedi.
+
+### İmza ve sözleşme uyumu
+
+```python
+build_response_figure(responses, *, theme="light", title=None) -> Figure
+```
+
+Sözleşmedeki `build_response_figure(responses: list[Response]) -> Figure`
+çağrısı aynen çalışır. Eklenen iki parametre **sadece anahtar kelimeli ve
+varsayılanlı**; sözleşme bozulmuyor, genişliyor.
+
+- `theme`: Kişi 3'ün M4B-2'de koyu/açık temayı geçirebilmesi için. M1'de
+  önerilmişti, Kişi 3 M4B-1 belgesinde nihai anlaşmayı M4B-2'ye bıraktı.
+- `title`: varsayılan başlık `"Unit step response comparison"`. Sözleşme imzası
+  `ModelParams` almadığı için figür a1/a0/b0 değerlerini kendisi bilemez;
+  isteyen çağıran zengin bir başlık geçebilir (ör. `"Case 1  a1=1  a0=1  b0=1"`).
+  Rapor ekran görüntülerinde bu işe yarayacak.
+
+### Çizim kuralları
+
+- **Yalnız y(t) çizilir.** v (hız) bu figürde yok; hata eğrileri M3'te.
+- **Legend sırası sabittir:** Exact, Euler, RK4 — kullanıcı yöntemleri hangi
+  sırayla seçerse seçsin. Görsel üst üste binme sırasını `zorder` belirler,
+  çizim sırası değil. Böylece ardışık çalıştırmalarda legend yer değiştirmez.
+- **Eksen etiketleri:** `Time (s)` ve `Output y(t)`. y için **birim yazılmaz** —
+  yönerge y'nin neyi ölçtüğünü hiç söylemiyor, uydurma birim desteklenmeyen bir
+  iddia olurdu. Bu bir testle sabitlenmiştir.
+- **Zaman ekseni** ilk örnekte başlar; Matplotlib'in varsayılan %5 boşluğu
+  t=0'da gereksiz boşluk bırakıyordu.
+- **İşaretçi seyreltme:** en çok `MAX_MARKERS = 40` işaretçi. dt küçüldükçe
+  örnek sayısı on binlere çıkıyor; her örneğe işaretçi koymak eğriyi tamamen
+  kapatıyordu. Adım `ceil(N / 40)` olarak hesaplanır, Exact zaten işaretçisiz.
+
+### Reddedilen girdiler
+
+Sessiz düzeltme yok, hepsi `ValueError`:
+
+| Girdi | Neden |
+|---|---|
+| Boş liste / tuple | Çizilecek bir şey yok |
+| `Response` olmayan öğe, liste olmayan girdi, tek `Response` | Ortak sözleşme dışı |
+| Aynı yöntem iki kez | Legend belirsizleşir |
+| Farklı zaman ızgaraları | **Örtük interpolasyon yapılmaz**, açık hata verilir |
+| Bozulmuş `Response` | Ortak `validate_response` yakalar |
+| Boş/metin olmayan `title`, bilinmeyen `theme` | Anlamsız çıktı üretmek yerine hata |
+
+### Çalıştırılan testler ve gerçek sonuçlar
+
+Python 3.11.9, Windows 11. Taban: güncel main `e71e723` (Kişi 3'ün M4B-1'i dahil).
+
+```
+QT_QPA_PLATFORM=offscreen MPLBACKEND=Agg python -m pytest -q
+445 passed
+
+MPLBACKEND=Agg python -m pytest tests/visualization/test_plots.py -q
+43 passed
+```
+
+445 = güncel main tabanı 402 + bu dalın 43 testi. Mevcut hiçbir test
+değiştirilmedi. Testler üç Case'in gerçek `solve_analytical` / `solve_euler` /
+`solve_rk4` çıktısını kullanıyor; çizilen x/y verisinin girdiyle birebir aynı
+olduğu, girdinin değiştirilmediği, çağıranın listesinin yeniden sıralanmadığı ve
+ardışık çağrıların önceki figüre çizgi eklemediği doğrulanıyor.
+
+**Görsel kontrol yapıldı.** Dört figür gerçek çözücü çıktısıyla üretilip
+incelendi: Case 1 ve Case 3, `dt = 0.1*2π/√a0 = 0.6283 s` (N=33), açık ve koyu
+tema; ayrıca Case 1 için `dt = h0/32 = 0.0196 s` (N=1020). Case 1'de Euler'in
+aşımı ve salınımı, Case 3'te aşımsız monoton yükseliş beklendiği gibi görünüyor;
+küçük adımda üç eğri çakışıyor. İşaretçi seyreltme 1020 örnekte doğru çalıştı.
+Bu görüntüler depoya eklenmedi — rapora girecek ekran görüntüleri gerçek
+uygulamadan, Kişi 3'ün M4B-2 entegrasyonundan sonra alınacak.
+
+### M2'nin bilinen eksikleri
+
+- `metrics.py` ve `export.py` hâlâ boş (M3/M4).
+- Koyu tema eğri renkleri hâlâ Kişi 3'ün onayını bekliyor; `theme="dark"`
+  çalışıyor fakat nihai anlaşma M4B-2'de.
+- Figür `ModelParams` almadığı için başlıkta a1/a0/b0 ancak çağıran geçerse
+  görünür. Kişi 3'e M4B-2'de `title` geçmesi önerilir.
+
+## Geçmiş kayıt: M1 — bağımsız grafik altyapısı
 
 Durum: **M1 için TAMAMLANDI**. Qt'den ve `pyplot`'tan bağımsız Figure üretimi,
 ortak yöntem kimliği (renk + çizgi deseni), iki tema ve sözleşmedeki örnek veri
@@ -227,14 +317,19 @@ PySide6/six tarafındaki bu kancanın önce düzelmesi gerekir.
 ## Aşamalar arası durum kaydı
 
 - **Sözleşme sürümü:** v0.2 (değiştirilmedi).
-- **Branch:** `feat/visualization-m1`. Taban: main `333b377` (PR #14 sonrası).
-- **Tamamlanan milestone:** M1.
-- **Sıradaki görev:** M2 — `build_response_figure`; başlık, zaman/çıktı etiketi,
-  legend, grid, `markevery`; bir/üç yöntem, boş liste, yanlış şekil ve farklı
-  zaman ızgarası testleri; girdi dizilerinin değişmediğinin doğrulanması.
-- **Çalıştırılan testler:** Python 3.11.9'da tam paket **374 passed**; yalnız
-  görselleştirme 57 passed; native Windows smoke PASS; uygulama yerelde açıldı.
-- **Blokaj:** yok. M1 başka kimseyi beklemedi.
-- **Başkasından beklenen API:** yok. M3 için Kişi 1 `solve_analytical` ve Kişi 2
-  `solve_euler`/`solve_rk4` zaten main'de. M4'ün deney tablosu için Kişi 2 ile
-  ortak çalışma, M4B grafik entegrasyonu için Kişi 3 gerekir.
+- **Branch:** `feat/visualization-m2`. Taban: main `e71e723` (PR #16 sonrası).
+  M1, PR #15 ile main'e alındı.
+- **Tamamlanan milestone:** M1, M2.
+- **Sıradaki görev:** M3 — `compute_error` (yalnız y için `max_abs` ve `rmse`)
+  ve `build_error_figure`. Elle hesaplanabilir örnek: `reference.y=[0,1,2]`,
+  `candidate.y=[0,2,0]` → max=2, RMSE=`sqrt(5/3)`. Aynı sinyalin hatası sıfır;
+  farklı ızgara örtük interpolate edilmez, açık hata verir.
+- **Çalıştırılan testler:** tam paket **445 passed** (taban 402 + 43 yeni);
+  `tests/visualization` toplam 100 test. Dört figür gerçek çözücü çıktısıyla
+  görsel olarak incelendi.
+- **Blokaj:** yok. M2 kimseyi beklemedi.
+- **Başkasından beklenen API:** yok. Kişi 1 ve Kişi 2'nin çözücüleri main'de ve
+  M3'ün ihtiyacı olan her şey hazır.
+- **Beni bekleyenler:** Kişi 3'ün M4B-2 entegrasyonu `build_response_figure`
+  (hazır), `compute_error` ve `build_error_figure` (M3) ile `export_figure`
+  (M4) gerektiriyor. Rapordaki 5–6 ekran görüntüsü M4B-2'ye bağlı.
