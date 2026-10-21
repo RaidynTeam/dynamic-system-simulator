@@ -1,6 +1,114 @@
-# Görselleştirme — Kişi 4, M2
+# Görselleştirme — Kişi 4, M3
 
-## Güncel milestone: M2 — yanıt karşılaştırması
+## Güncel milestone: M3 — hata ve metrikler
+
+Durum: **M3 için TAMAMLANDI**. `compute_error` ve `build_error_figure` hazır.
+Geriye yalnız `export_figure` (M4) kaldı; Kişi 3'ün `load_visualization_api()`
+çağrısı artık eksik olarak **sadece onu** bildiriyor.
+
+Ortak API v0.2 bozulmadı. Başka kişiye ait dosya değiştirilmedi.
+
+### `compute_error` — sözleşmedeki iki formül
+
+```python
+compute_error(reference: Response, candidate: Response) -> ErrorMetrics
+error_signal(reference: Response, candidate: Response) -> ndarray   # |Δy|
+```
+
+Sözleşme ne diyorsa o: `max_abs = max(|candidate.y − reference.y|)` ve
+`rmse = sqrt(mean((candidate.y − reference.y)²))`.
+
+**Yalnız y ölçülür.** Hız hatası kasten katılmıyor: konum ve hız hatasını tek
+sayıda toplamak ikisini de anlatmayan bir sayı üretir, yönerge ise y(t) basamak
+yanıtını karşılaştırıyor. **Yüzde hata da yok**: yanıt `y(0)=0`'dan başladığı
+için göreli hata ilk örnekte sıfıra bölme olur.
+
+**Sayısal bir ayrıntı:** sözleşmedeki `mean(d**2)` ifadesi `d` yaklaşık 1e154'ü
+geçince float64'te taşar. Kod aynı sonucu veren ama taşmayan biçimi kullanıyor:
+en büyük sapma önce dışarı çarpan olarak alınır, kareler ondan sonra hesaplanır.
+Bir testte `mean(d**2)`'nin gerçekten `inf` verdiği, benim sonucumun ise sonlu
+ve doğru kaldığı gösteriliyor.
+
+### Doğrulama — iki bağımsız kaynakla eşleşiyor
+
+**1. Rehberin elle hesaplanan örneği.** `reference.y=[0,1,2]`,
+`candidate.y=[0,2,0]` → fark `[0,1,2]`, max **2.0**, RMSE **1.2909944487358056**
+= `sqrt(5/3)`. Birebir tutuyor.
+
+**2. Kişi 2'nin bağımsız ölçüm tablosu.** `docs/modules/numerical-handoff.md`
+içinde Kişi 2 kendi betiğiyle altı senaryonun maksimum hatalarını ölçmüş. Benim
+`compute_error`'um aynı senaryoları hesapladığında **altısı da yazılan her
+basamağa kadar aynı çıkıyor**:
+
+| Senaryo | Kişi 2'nin ölçümü (Euler) | Benim sonucum | Kişi 2 (RK4) | Benim sonucum |
+|---|---|---|---|---|
+| Case 1, h0 | 4.2456625100e-1 | 4.245663e-01 | 1.1940059470e-3 | 1.194006e-03 |
+| Case 1, h0/32 | 7.7908424168e-3 | 7.790842e-03 | 9.7515684416e-10 | 9.751568e-10 |
+| Case 2, h0 | 1.3645129660e-1 | 1.364513e-01 | 2.8790463888e-3 | 2.879046e-03 |
+| Case 2, h0/16 | 6.1668402676e-3 | 6.166840e-03 | 2.3812393501e-8 | 2.381239e-08 |
+| Case 3, h0 | 1.1290948247e-1 | 1.129095e-01 | 1.3349999881e-2 | 1.335000e-02 |
+| Case 3, h0/8 | 6.4584911355e-3 | 6.458491e-03 | 1.1100609671e-6 | 1.110061e-06 |
+
+İki ayrı kişi, iki ayrı kod yolu, aynı sayılar. Rehberin M3 kabul ölçütü
+("metrikler bağımsız elle hesaplanan beklentiyle eşleşir") bununla karşılanıyor.
+Sayılar `tests/visualization/preview.py` çıktısından; uydurulmamıştır.
+
+### `build_error_figure`
+
+```python
+build_error_figure(reference, candidates, *, theme="light",
+                   title=None, scale="linear") -> Figure
+```
+
+Her aday için `|candidate.y − reference.y|` çizilir. **Referansın kendisi
+çizilmez** — kendisiyle farkı tanımı gereği sıfırdır, sıfırda düz bir çizgi
+yalnız legend'i kalabalıklaştırırdı. Eksen etiketi ve başlık referansın adını
+kullanır (`Absolute error vs Exact`), yani referans değişirse etiket de değişir.
+
+**Eksen ölçeği.** Varsayılan doğrusal — rehberin istediği gibi. Fakat doğrusal
+eksende RK4'ün hatası Euler'in yanında sıfır gibi görünüyor (Case 1'de 1.2e-3'e
+karşı 4.2e-1). Bu yüzden `scale="log"` seçeneği var ve rehberin istediği açıklama
+şu: **log ekseni sıfır değeri gösteremez.** İlk örnekte hata her zaman tam
+sıfırdır, çünkü bütün çözücüler aynı `y(0)=0` koşulundan başlar. Bu örnekler
+*maskelenir*: eğri orada kesilir, yerine uydurma bir taban değeri konmaz ve
+eksende olmayan bir noktaya doğru çizgi çizilmez. Sıfırlar verinin içinde kalır.
+İlk denemede maskeleme yoktu ve sol kenarda hayalet bir dikey çizgi oluşuyordu;
+görsel kontrolde yakalandı.
+
+### Reddedilen girdiler
+
+| Girdi | Neden |
+|---|---|
+| Boş aday listesi | Çizilecek bir şey yok |
+| `Response` olmayan referans/aday | Ortak sözleşme dışı |
+| Aynı yöntem iki kez, ya da referansla aynı yöntemde aday | Legend belirsizleşir |
+| Farklı zaman ızgarası | **Örtük interpolasyon yapılmaz**, açık hata |
+| Bilinmeyen `scale`/`theme`, boş `title` | Anlamsız çıktı yerine hata |
+
+### Çalıştırılan testler ve gerçek sonuçlar
+
+```
+QT_QPA_PLATFORM=offscreen MPLBACKEND=Agg python -m pytest -q
+525 passed
+
+MPLBACKEND=Agg python -m pytest tests/visualization -q
+180 passed
+```
+
+525 = M2 sonrası 445 + bu dalın 80 testi (24 metrik, 56 hata grafiği). Mevcut
+hiçbir test değiştirilmedi.
+
+Görsel kontrol `tests/visualization/preview.py` ile yapıldı; betik artık her
+senaryo için üç dosya üretiyor: yanıt, hata (doğrusal), hata (log). Ayrıca
+ölçülen maksimum hataları konsola yazıyor — yukarıdaki tablo oradan.
+
+### M3'ün bilinen eksikleri
+
+- `export.py` hâlâ boş (M4). Kişi 3'ün entegrasyonunun önündeki **tek** engel bu.
+- Koyu tema eğri renkleri hâlâ Kişi 3'ün onayını bekliyor.
+- Metrikler figürün legend'ına yazılmıyor; Kişi 3'ün ayrı metrik paneli var.
+
+## Geçmiş kayıt: M2 — yanıt karşılaştırması
 
 Durum: **M2 için TAMAMLANDI**. `build_response_figure` seçili yöntemlerin y(t)
 eğrilerini tek figürde, ortak zaman ekseninde çiziyor. `compute_error`,
@@ -80,10 +188,13 @@ doğrular; bir figürün *okunabilir* olup olmadığını söyleyemez. Bunun iç
 `tests/numerical/experiments.py` betiğiyle aynı kalıpta:
 
 ```
-python tests/visualization/preview.py            # 12 PNG, iki tema
+python tests/visualization/preview.py            # PNG'leri geçici klasöre yazar
 python tests/visualization/preview.py --open     # yazıp klasörü açar
-python tests/visualization/preview.py <klasör> --theme dark
+python tests/visualization/preview.py <klasör> --theme both
 ```
+
+(Betik M3'te genişletildi: artık senaryo başına üç dosya üretiyor ve ölçülen
+maksimum hataları da yazdırıyor. Ayrıntı M3 bölümünde.)
 
 Betik üretim `build_response_figure`'ını gerçek çözücü çıktısıyla çağırır ve
 `docs/modules/numerical-handoff.md` içinde Kişi 2'nin rapor ekran görüntüleri
@@ -334,19 +445,20 @@ PySide6/six tarafındaki bu kancanın önce düzelmesi gerekir.
 ## Aşamalar arası durum kaydı
 
 - **Sözleşme sürümü:** v0.2 (değiştirilmedi).
-- **Branch:** `feat/visualization-m2`. Taban: main `e71e723` (PR #16 sonrası).
-  M1, PR #15 ile main'e alındı.
-- **Tamamlanan milestone:** M1, M2.
-- **Sıradaki görev:** M3 — `compute_error` (yalnız y için `max_abs` ve `rmse`)
-  ve `build_error_figure`. Elle hesaplanabilir örnek: `reference.y=[0,1,2]`,
-  `candidate.y=[0,2,0]` → max=2, RMSE=`sqrt(5/3)`. Aynı sinyalin hatası sıfır;
-  farklı ızgara örtük interpolate edilmez, açık hata verir.
-- **Çalıştırılan testler:** tam paket **445 passed** (taban 402 + 43 yeni);
-  `tests/visualization` toplam 100 test. Dört figür gerçek çözücü çıktısıyla
-  görsel olarak incelendi.
-- **Blokaj:** yok. M2 kimseyi beklemedi.
-- **Başkasından beklenen API:** yok. Kişi 1 ve Kişi 2'nin çözücüleri main'de ve
-  M3'ün ihtiyacı olan her şey hazır.
-- **Beni bekleyenler:** Kişi 3'ün M4B-2 entegrasyonu `build_response_figure`
-  (hazır), `compute_error` ve `build_error_figure` (M3) ile `export_figure`
-  (M4) gerektiriyor. Rapordaki 5–6 ekran görüntüsü M4B-2'ye bağlı.
+- **Branch:** `feat/visualization-m3`, `feat/visualization-m2` üzerine kurulu
+  (M2 henüz merge olmadı). M2'nin tabanı main `e71e723`. M1, PR #15 ile main'de.
+- **Tamamlanan milestone:** M1, M2, M3.
+- **Sıradaki görev:** M4 — `export_figure(figure, path)`; PNG ve PDF, geçersiz
+  uzantı/olmayan klasör/yazma hatası kontrollü, boş dosya üretip başarı
+  bildirmeme, dışa aktarılan çıktının gözle incelenmesi. Ardından Kişi 2 ile dt
+  deney tablosu.
+- **Çalıştırılan testler:** tam paket **525 passed** (M2 sonrası 445 + 80 yeni);
+  `tests/visualization` toplam 180 test. Hata grafikleri üç Case'te, iki temada,
+  doğrusal ve log eksende görsel olarak incelendi.
+- **Blokaj:** yok. M3 kimseyi beklemedi.
+- **Başkasından beklenen API:** yok.
+- **Beni bekleyenler:** Kişi 3'ün M4B-2 entegrasyonunun önündeki **tek** eksik
+  artık `export_figure`. `load_visualization_api()` dördünün de var olmasını
+  şart koştuğu için M4 bitene kadar entegrasyon başlayamıyor; Kişi 3'e bu şartın
+  yalnız yanıt grafiği için gevşetilip gevşetilemeyeceği soruldu. Rapordaki
+  5–6 ekran görüntüsü M4B-2'ye bağlı.

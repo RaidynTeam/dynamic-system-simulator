@@ -1,0 +1,54 @@
+Visualization M3 test record
+Date: 21 October 2026
+Interpreter: Python 3.11.9 on Windows 11 Home 26200
+Branch: feat/visualization-m3, stacked on feat/visualization-m2 (base main e71e723)
+
+$ QT_QPA_PLATFORM=offscreen MPLBACKEND=Agg python -m pytest -q
+.....................                                                    [100%]
+525 passed in 10.44s
+
+$ MPLBACKEND=Agg python -m pytest tests/visualization -q
+....................................                                     [100%]
+180 passed in 3.56s
+
+525 = 445 after M2 plus this branch's 80 tests (24 metrics, 56 error figure).
+No existing test was changed or removed.
+
+--- The guide's hand-computed example ---
+  reference.y=[0,1,2]  candidate.y=[0,2,0]
+  measured  max_abs=2.0  rmse=1.2909944487358056
+  expected  max_abs=2.0  rmse=1.2909944487358056  (sqrt(5/3))
+
+--- Cross-check against Person 2's independent measurements ---
+Person 2 measured these maxima with their own script in
+docs/modules/numerical-handoff.md. Below is what compute_error reports for
+the same six scenarios, printed by tests/visualization/preview.py:
+
+case1-h0-light             dt=0.628319 N=   33  Euler max=4.245663e-01  RK4 max=1.194006e-03
+case1-h0over32-light       dt=0.019635 N= 1020  Euler max=7.790842e-03  RK4 max=9.751568e-10
+case2-h0-light             dt=0.628319 N=   33  Euler max=1.364513e-01  RK4 max=2.879046e-03
+case2-h0over16-light       dt=0.039270 N=  511  Euler max=6.166840e-03  RK4 max=2.381239e-08
+case3-h0-light             dt=0.628319 N=   33  Euler max=1.129095e-01  RK4 max=1.335000e-02
+case3-h0over8-light        dt=0.078540 N=  256  Euler max=6.458491e-03  RK4 max=1.110061e-06
+
+Person 2's table, for comparison:
+  Case 1 h0       Euler 4.2456625100e-1   RK4 1.1940059470e-3
+  Case 1 h0/32    Euler 7.7908424168e-3   RK4 9.7515684416e-10
+  Case 2 h0       Euler 1.3645129660e-1   RK4 2.8790463888e-3
+  Case 2 h0/16    Euler 6.1668402676e-3   RK4 2.3812393501e-8
+  Case 3 h0       Euler 1.1290948247e-1   RK4 1.3349999881e-2
+  Case 3 h0/8     Euler 6.4584911355e-3   RK4 1.1100609671e-6
+
+All six agree to every digit printed. Two people, two independent code
+paths, the same numbers.
+
+--- Visual check (not committed, not report evidence) ---
+Three figures per scenario in both themes: response, absolute error on a
+linear axis, and the same error on a log axis. On the linear axis RK4 sits
+on zero next to Euler; the log axis shows the three to five orders of
+magnitude between them. A first attempt without masking drew a phantom
+vertical line at the left edge of the log plot, where the curve ran towards
+the zero sample the axis cannot show; masking fixed it.
+
+The UI adapter now reports only the last missing function:
+  Visualization API unavailable: export_figure (Person 4).
