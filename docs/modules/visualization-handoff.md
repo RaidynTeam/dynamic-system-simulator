@@ -17,8 +17,9 @@ alınmıştır. Kontrol tabanı: main `373b1f3` (21 Ekim 2026). Rapor katkısı
 - [x] **M4**: `export_figure` — PNG/PDF, dışa aktarılan çıktının gözle
   incelenmesi, üç Case için adım yarılama deney tablosu. PR #19.
 - [x] **M5**: bu kayıt, [İngilizce rapor katkısı](../report/visualization-report.md),
-  [Türkçe savunma rehberi](visualization-defense-tr.md), genişletilmiş
-  [CONTRIBUTING](../../CONTRIBUTING.md).
+  genişletilmiş [CONTRIBUTING](../../CONTRIBUTING.md) ve sözlü savunma
+  hazırlığı. Savunma notları kişisel çalışma malzemesi olduğu için depoda
+  tutulmuyor.
 - [x] Dört PR'da da CI (Windows, Python 3.11) başarılı.
 - [x] [Teknik notlar](visualization.md): tasarım kararları, ölçümler, bilinen
   eksikler ve aşamalar arası durum kaydı.

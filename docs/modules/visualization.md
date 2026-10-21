@@ -10,7 +10,6 @@ Bu aşamada kod değişmedi. Teslim edilenler:
 | Dosya | İçerik |
 |---|---|
 | [`docs/report/visualization-report.md`](../report/visualization-report.md) | Ortak rapora İngilizce katkı |
-| [`docs/modules/visualization-defense-tr.md`](visualization-defense-tr.md) | Türkçe sözlü savunma rehberi |
 | [`docs/modules/visualization-handoff.md`](visualization-handoff.md) | Teslim kaydı ve kalan bağımlılıklar |
 | [`CONTRIBUTING.md`](../../CONTRIBUTING.md) | Ortak Git/PR kurallarının tam hâli |
 | Bu dosya | Metrik tanımı, çizim/export kullanımı, test kanıtı |
@@ -41,10 +40,11 @@ sebebin PR'a yazılması; ve **Python 3.12 kullanılmaması** gerektiği.
 
 ### Savunma hazırlığı
 
-Türkçe rehberde iki dakikalık anlatım, tahtada gösterilecek elle hesap örneği,
-rehberin dört savunma sorusunun cevabı, ek sorular (neden pyplot yok, metriklerin
-doğruluğu nereden biliniyor, log ekseninde sıfır, demo veri neden var) ve
-**zayıf noktaların dürüst listesi** var.
+Rehberin dört savunma sorusu (RMSE ile maksimum hata farkı, neden aynı zaman
+örnekleri, referans sıfırken yüzde hata, küçük dt'nin ne zaman iyileştirdiği)
+çalışıldı. Cevapların dayandığı ölçümler ve tasarım gerekçeleri bu belgenin
+ilgili bölümlerinde; savunma notlarının kendisi kişisel çalışma malzemesi
+olduğu için depoda tutulmuyor.
 
 ## Geçmiş kayıt: M4 — export ve deney kanıtı
 
