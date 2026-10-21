@@ -220,8 +220,7 @@ Yerel bağımlılık sürümleri `docs/evidence/numerical-environment.txt` için
 
 ## 9. M5 rapor katkısı ve teslim
 
-- [İngilizce rapor bölümü](../report/numerical-report.md) hazır: görev,
-  algoritmalar, API, ölçülen deney tabloları, kararlılık ve sonuç.
+- İngilizce rapor katkısı nihai rapor hazırlığı için kaynak deposu dışında tutulur.
 - [Teslim kaydı ve altı ekran görüntüsü senaryosu](numerical-handoff.md) hazır.
 - M5 belge dalı: `docs/numerical-m5`; taban main `bf033de`.
 - M1-M4 teknik işleri tamam. M5'in rapor katkısı hazır; Kişi 4'ün PR incelemesi

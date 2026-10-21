@@ -16,8 +16,9 @@ analizi ve dışa aktarma. Ödev koşulları yalnız
   PR #18.
 - [x] **M4** — `export_figure`: PNG/PDF dışa aktarımı, çıktının gözle
   incelenmesi, üç Case için adım yarılama deney tablosu. PR #19.
-- [x] **M5** — bu kayıt, [İngilizce rapor katkısı](../report/visualization-report.md)
-  ve ekip kurallarının tamamını taşıyan [CONTRIBUTING](../../CONTRIBUTING.md).
+- [x] **M5** — bu kayıt, nihai rapor hazırlığı için kaynak deposu dışında tutulan
+  İngilizce rapor katkısı ve ekip kurallarının tamamını taşıyan
+  [CONTRIBUTING](../../CONTRIBUTING.md).
 - [x] [Teknik modül açıklaması](visualization.md): tasarım kararları, ölçümler,
   bilinen eksikler ve aşamalar arası durum kaydı.
 - [x] Kanıt kayıtları: `docs/evidence/visualization-m1-tests.txt`,

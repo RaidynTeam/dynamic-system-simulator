@@ -9,8 +9,7 @@ raporu birleştirirken kullanıcı tarafından tamamlanacaktır; burada uydurulm
 - [x] Ortak API v0.2, model doğrulaması ve üç Case sınıflandırması.
 - [x] Üç Case için y(t), v(t), küçük zaman ve kritik sınıra yakın değerlendirme.
 - [x] Bağımsız analitik doğruluk kontrolleri; M4 Euler/RK4 karşılaştırması.
-- [x] [İngilizce rapor katkısı](../report/analytical-report.md): görev, model,
-  üç türetim, kararlılık, fonksiyonlar, hassasiyet, deney yorumu ve sonuç.
+- [x] İngilizce rapor katkısı nihai rapor hazırlığı için kaynak deposu dışında tutulur.
 - [x] [Türkçe savunma rehberi](analytical-defense-tr.md): kısa anlatım, tahtada
   Case 2 türetimi, soru-cevap ve öğrencinin çözmesi gereken alıştırmalar.
 - [x] [Teknik modül açıklaması](analytical.md) ve

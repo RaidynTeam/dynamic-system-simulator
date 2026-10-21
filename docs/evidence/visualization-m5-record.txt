@@ -24,7 +24,7 @@ Per file:
   test_styles.py           24 tests collected in 0.59s
 
 --- Delivered in M5 ---
-  docs/report/visualization-report.md        English report contribution
+  English report contribution                retained outside the source repository
   docs/modules/visualization-handoff.md      Delivery record
   CONTRIBUTING.md                            Full team Git/PR rules
   docs/modules/visualization.md              Final module notes

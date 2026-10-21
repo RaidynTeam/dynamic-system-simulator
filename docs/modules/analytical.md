@@ -166,8 +166,7 @@ hata üst sınırı kanıtlamaz. Grafik/savunma ekran görüntüsü ayrı teslim
 
 ## M5 — Rapor, savunma ve teslim
 
-- [İngilizce rapor katkısı](../report/analytical-report.md): üç Case'in türetimi,
-  kararlılık ve limitler, fonksiyonlar, kayan nokta değerlendirmesi ve M4 sonuçları.
+- İngilizce rapor katkısı nihai rapor hazırlığı için kaynak deposu dışında tutulur.
 - [Türkçe savunma rehberi](analytical-defense-tr.md): kısa anlatım, Case 2 tahta
   örneği, soru-cevap ve kendi başına çözülecek alıştırmalar.
 - [Teslim kaydı](analytical-handoff.md): tamamlanan işler, numerical PR #10
