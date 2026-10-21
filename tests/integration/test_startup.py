@@ -31,8 +31,9 @@ def test_entry_point_without_unfinished_modules():
                 if len(windows) != 1:
                     app.exit(2)
                     return
-                windows[0].run_button.click()
-                if "No results have been calculated" not in windows[0].status.text():
+                # Opening the UI must remain isolated. Run now intentionally
+                # needs shared types and real solvers (covered separately).
+                if windows[0].status.text() != "Ready to simulate":
                     app.exit(3)
                     return
                 windows[0].close()
