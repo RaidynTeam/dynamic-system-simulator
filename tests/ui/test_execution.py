@@ -55,10 +55,10 @@ def test_run_button_real_cases_and_selections(window, wait_for, case, methods):
     assert tuple(r.method for r in window.last_responses) == methods
     assert all(isinstance(r, Response) for r in window.last_responses)
     assert window.last_run_inputs.a1 == case + 1
-    assert window.status.text() == "Calculation completed. Visualization pending."
-    assert not window.figure.axes
-    assert window.metrics.text() == "No results yet"
-    assert not window.export_png.isEnabled() and not window.export_pdf.isEnabled()
+    assert window.status.text() == "Simulation completed. Results loaded."
+    assert len(window.figure.axes[0].lines) == len(methods)
+    assert window.metrics.text() != "No results yet"
+    assert window.export_png.isEnabled() and window.export_pdf.isEnabled()
 
 
 def test_immutable_snapshot_and_shared_parameter_transfer(window, app, wait_for, held_solver, monkeypatch):

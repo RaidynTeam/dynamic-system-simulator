@@ -2,33 +2,27 @@
 
 Lab 1 için dört kişinin geliştireceği Python proje iskeleti.
 
-## Durum — M4B-1 real Run & background execution (COMPLETE)
+## Durum — M4B-2 real visualization integration (COMPLETE)
 
-PySide6 arayüzünde varsayılan açık tema ve sağ üstte güneş/ay düğmesiyle anlık
-koyu tema geçişi vardır. Seçim QSettings ile sonraki açılışta hatırlanır;
-Windows sistem teması arayüzü belirlemez. Solda tek
-System Controls kartı, görünür Case düğmeleri, dört slider ve Run Simulation;
-sağda temayla eşleşen Matplotlib canvas ve kompakt hata metrikleri boş durumu vardır.
-Alt satır hazır/hata/henüz bağlanmamış simülasyon durumunu gösterir.
-Ortak veri tipleri, parametre doğrulaması ve üç Case sınıflandırması hazırdır;
-analitik üç Case çözümü, ortak zaman ızgarası, Euler ve RK4 API'leri mevcuttur.
-`dss.ui.controller.run_simulation(model, config, methods)` tek ızgarada yalnız
-seçili çözücüleri istenen sırayla çalıştırır ve gerçek shared Response listesi döndürür.
-Girdileri ortak doğrulayıcılara devreder; sayısal hataları değiştirmeden iletir.
-Run Simulation artık tek bir doğrulanmış girdi snapshot'ı ile bu controller'ı
-QThread üzerinde çalıştırır. Hesap sürerken “Calculating...” görünür ve ikinci
-Run engellenir. Girdiler değişirse eski sonuç reddedilir; pencere kapanışı aktif
-thread güvenle bitene kadar ertelenir. İptal özelliği yoktur.
-Hesap bitince “Calculation completed. Visualization pending.” gösterilir. Grafik boştur,
-metrik alanı “No results yet” yazar. DEMO veri veya sahte sonuç kullanılmaz.
+PySide6 uygulamasında Case veya özel katsayıları ve yöntemleri seçip Run
+Simulation'a basın. Mevcut QThread controller'ı çalıştırır; yalnız geçerli güncel
+sonuçlar Person 4'ün gerçek grafik/metrik API'lerine aktarılır. Response görünümü
+seçili yöntemlerin gerçek y(t) eğrilerini gösterir. Exact ile Euler/RK4 birlikte
+seçildiğinde Error görünümü, maksimum mutlak hata ve RMSE kullanılabilir.
+Yalnız Exact veya yalnız sayısal yöntemlerde referans uydurulmaz; hata görünümü
+kapalı ve metrikler Not calculated olarak kalır.
 
-Sonuç başlığında Response/Error seçimi ve PNG/PDF düğmeleri hazırlanmıştır;
-bu aşamada kapalıdır. Person 4'ün Visualization M1 Figure/tema yardımcıları
-mevcuttur; tam response/error grafik, metrik ve export API'leri henüz yoktur.
-Gerçek çözücü sonuçları artık UI'dan hesaplanır ve yalnız son geçerli çalışma
-bellekte tutulur; üretim grafikleri oluşturulmaz. M4B-2 görselleştirme kapsamıdır.
-Gelecekte `MainWindow.show_responses()` shared Response nesnelerini doğrular ve
-Figure/metrik üretimini Person 4'e bırakır; yazmayı export_figure'a devreder.
+Açık/koyu tema QSettings ile korunur. Tema değişimi mevcut Responses üzerinden
+iki grafiği yeniden üretir; çözücüler/metrik hesabı tekrarlanmaz ve seçili görünüm
+korunur. Euler her iki temada #FF1D8D; açık eğriler Exact #475569 / RK4 #2563EB,
+koyu eğriler Exact #CBD5E1 / RK4 #60A5FA kullanır. Onaylı 35/65 düzen değişmedi.
+
+Response veya Error seçip PNG/PDF düğmesine basarak gerçek grafiği kaydedin.
+İptal işlemi değiştirmez; mevcut dosya için onay istenir. Başarı yalnız gerçek,
+boş olmayan dosya oluşturulduktan sonra gösterilir. DEMO veri kullanılmaz.
+Hesap sırasında ikinci Run engellenir; değişen girdiler eski sonuçları geçersiz
+kılar. Kapanış aktif worker bitene kadar ertelenir; iptal özelliği yoktur.
+Görselleştirme hatası grafikleri temizler, kabul edilen hesap verisini korur.
 
 Hocanın **Lab1 RTS 09102026** yönergesi geliştirme sırasında main'e eklendi:
 [kaynak PDF](docs/reference/Lab1-RTS-09102026.pdf) ve
@@ -75,7 +69,7 @@ Aktif Python ortamında diğer platformlarda `python -m dss` kullanın.
 
 Örnek akış: Case 2 düğmesine basın, `b0` slider'ını ve bitiş zamanını düzenleyin,
 yöntemleri seçin ve Run Simulation'a basın. Arayüz hesap sırasında kullanılabilir;
-sonuçta hesap tamamlandı/görselleştirme bekliyor mesajı görünür. Çalışırken girdileri
+sonuçta gerçek eğriler ve uygun hata metrikleri görünür. Çalışırken girdileri
 değiştirirseniz o çalışmanın sonucu atılır; yeni Run için mevcut hesabın bitmesini bekleyin.
 
 - `a1`, `a0`, `b0`: QSlider, 0.01–20.00 aralığı, 0.01 adım ve sayısal değer etiketi.
@@ -125,9 +119,8 @@ Remove-Item Env:QT_QPA_PLATFORM
 ```
 
 POSIX: `QT_QPA_PLATFORM=offscreen python -m pytest -q`.
-Testler pencere açılış/kapanışını, gerekli kontrolleri, Case/alan eşlemesini,
-başlangıç adımını, boş seçim mesajını ve eksik modüllerden bağımsız gerçek
-uygulama girişini kontrol eder. Gerçek hesaplama doğruluğunu kanıtlamaz.
+Testler UI yaşam döngüsü, girdiler, izole başlangıç, gerçek Run-to-plot akışı,
+hata metrikleri, tema geçişi ve dışa aktarmayı kontrol eder.
 Test komutu: `python -m pytest -q`. Ortak sözleşme, sınıflandırma ve üç Case için analitik çözüm testleri mevcuttur.
 GitHub Actions yapılandırması testler eklenince Kişi 2 tarafından hazırlanacaktır.
 
@@ -137,17 +130,19 @@ Windows yerel UI smoke testi (pencere otomatik açılır ve kapanır):
 .\.venv\Scripts\python.exe tests/ui/native_smoke.py
 ```
 
-M4B-1 doğrulama: güncel main başlangıcı **374 passed**, son tam pytest paketi
-**402 passed**; iki temada Windows smoke testi **PASS**.
-Yeni worker testleri gerçek Run/üç Case/yöntemleri, tek snapshot, gerçek RK4 sırasında
-Qt yanıt verebilirliği, yinelenen tıklamalar, stale-result reddi, hata aktarımı,
-tekrarlanan çalışmaların temizliği ve aktif worker sırasında güvenli kapanışı kapsar.
-Tema kalıcılığı, canvas yaşam döngüsü, metrik/grid doğrulaması ve export UI
-başarı/hata/iptal akışları test edilir; gerçek visualization API başarısı iddia edilmez.
-Görsel olarak kontrol edilen dört görüntü `.venv/ui-m4b1-{light,dark}-{1440x900,1000x740}.png`
-altında yerel olarak tutulur. M4B-2 için Person 4'ün tam grafik/metrik/export API'leri,
-gerçek grafik renklerinde ekip mutabakatı ve kullanıcı onayı gerekir. UI Euler rengi
-`#FF1D8D` korunur; önerilen yüksek kontrastlı koyu eğri paleti UI belgesinde kayıtlıdır.
+M4B-2 doğrulama: güncel main **565 passed**, son tam pytest **601 passed**;
+yerel Windows smoke **PASS**. Üç Case/yedi yöntem kombinasyonu, gerçek eğri/grid
+ve metrikler, dt/2 ve dt/4 yakınsaması, tema renkleri, eski sonuçların reddi,
+canvas/worker temizliği ve gerçek PNG/PDF dosyaları doğrulandı. Dört Response
+ve iki Error ekran görüntüsü yerel `.venv/ui-m4b2-*.png` dosyalarındadır.
+Gerçek dışa aktarmalar `.venv/native-m4b2-{light,dark}-{0,1}.{png,pdf}` altındadır.
+Görsel kontrol her iki temada 1440×900 ve 1000×740 boyutlarında yapıldı.
+
+Mevcut bir milyon örnek sınırında tüm veriler korunur. Çözücüler worker içinde;
+grafik çizimi ve export GUI üzerinde senkrondur. Üst sınırda iki grafiğin yerel
+Agg çizimi toplam 2.18 saniye sürdü; büyük grafik/export kısa etkileşim beklemesi
+yaratabilir. Ayrıntılı akış, ölçümler ve M5 öncesi kontrol listesi
+[UI belgesinde](docs/modules/ui.md). M5 başlatılmadı; ekip incelemesi bekleniyor.
 
 Commit biçimi: `<type>(<scope>): <description>`.
 Geliştirme feature branch ve gözden geçirilmiş PR üzerinden ilerler.

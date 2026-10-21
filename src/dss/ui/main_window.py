@@ -13,7 +13,7 @@ from dss.ui.execution import SimulationThread, make_request
 from dss.ui.slider_input import SliderInput
 from dss.ui.state import LabInputs
 from dss.ui.theme import apply_theme, method_style, saved_theme, style_canvas, theme_settings
-from dss.ui.presentation import prepare_results
+from dss.ui.presentation import prepare_results, retheme_results
 
 
 class MainWindow(QMainWindow):
@@ -205,6 +205,15 @@ class MainWindow(QMainWindow):
         if persist:
             self.settings.setValue("ui/theme", mode)
             self.settings.sync()
+        if self.prepared_results is not None:
+            try:
+                prepared = retheme_results(self.prepared_results, mode)
+            except Exception as error:
+                self._clear_results()
+                self._set_status(f"Visualization failed: {error}", "error")
+            else:
+                self.prepared_results = prepared
+                self._change_view(self.view_selector.currentIndex())
         self._update_theme_widgets()
 
     def _update_theme_widgets(self) -> None:
@@ -241,6 +250,9 @@ class MainWindow(QMainWindow):
         old_figure = self.figure
         self.plot_layout.removeWidget(old_canvas)
         old_canvas.hide()
+        # QtAgg's queued zero-delay draw can outlive canvas replacement. Cancel
+        # that pending draw before detaching the figure (not an active render).
+        old_canvas._draw_pending = False
         old_canvas.close()
         if old_figure.canvas is old_canvas:
             old_figure.set_canvas(None)
@@ -255,10 +267,10 @@ class MainWindow(QMainWindow):
     def show_responses(self, responses: list, *, api=None) -> bool:
         """M4 handoff: accept shared Responses; never run solvers here."""
         try:
-            prepared = prepare_results(responses, api)
+            prepared = prepare_results(responses, api, theme=self.theme_mode)
         except Exception as error:
             self._clear_results()
-            self._show_error(str(error))
+            self._set_status(f"Visualization failed: {error}", "error")
             return False
         self.prepared_results = prepared
         self.view_selector.blockSignals(True)
@@ -274,7 +286,7 @@ class MainWindow(QMainWindow):
             for key, value in prepared.metrics.items()
         ) or "Not calculated — Exact and a numerical response are required.")
         self.legend_preview.setToolTip("Methods in the loaded simulation results.")
-        self._set_status("Results loaded")
+        self._set_status("Simulation completed. Results loaded.")
         return True
 
     def _clear_results(self) -> None:
@@ -332,8 +344,8 @@ class MainWindow(QMainWindow):
             return
         try:
             self.prepared_results.api.export_figure(self.figure, path)
-            if not path.is_file():
-                raise OSError("The exporter did not create the selected file.")
+            if not path.is_file() or path.stat().st_size == 0:
+                raise OSError("The exporter did not create a nonempty selected file.")
         except Exception as error:
             self._show_error(f"Export failed: {error}")
             return
@@ -496,7 +508,7 @@ class MainWindow(QMainWindow):
         else:
             self.last_responses = outcome.responses
             self.last_run_inputs = request.inputs
-            self._set_status("Calculation completed. Visualization pending.", "notice")
+            self.show_responses(outcome.responses)
 
     def closeEvent(self, event) -> None:
         if self._job is not None:

@@ -1,6 +1,113 @@
-# UI — Person 3, M4B-1
+# UI — Person 3, M4B-2
 
-## Current milestone: M4B-1 — real Run and background execution
+## Current milestone: Complete real visualization integration
+
+Status: **COMPLETE for M4B-2** (2026-10-21). Base main: `373b1f38fa`;
+branch: `feat/ui-m4b2-integration`. PRs #16–#19 were verified merged before
+fast-forwarding main and creating this fresh branch. Reviewed AGENTS.md,
+Person 3 guide, shared API v0.2, instructor PDF (including task page), current
+UI and all solver/visualization public implementations. Only Person 3 files
+changed. No dependencies, shared contracts or owner algorithms changed.
+
+### Production flow and ownership
+
+The existing immutable RunRequest and managed SimulationThread remain intact.
+`run_simulation(model, config, methods)` calls `make_time_grid(config)` once,
+then only selected `solve_analytical(model,t)`, `solve_euler(model,t)` and/or
+`solve_rk4(model,t)`. After the finished signal, the GUI accepts only a current
+revision/input snapshot and passes genuine Responses to `show_responses`.
+`prepare_results` validates shared Response types, unique methods and identical
+time grids. It delegates to Person 4's exported APIs:
+
+| API | Signature used |
+|---|---|
+| build_response_figure | (responses, *, theme="light", title=None) -> Figure |
+| build_error_figure | (reference, candidates, *, theme="light", title=None, scale="linear") -> Figure |
+| compute_error | (reference, candidate) -> ErrorMetrics |
+| export_figure | (figure, path, *, dpi=200) -> None |
+
+The response view shows selected genuine y(t) samples only. Exact plus at least
+one numerical method enables Error view and shows maximum absolute error and
+RMSE. Exact-only or numerical-only runs still plot; metrics explicitly say Not
+calculated and Error view remains disabled. No unselected Exact is computed.
+`Simulation completed. Results loaded.` means both calculation and presentation
+succeeded. Visualization failures have a distinct message, clear graphs/metrics/
+export, and retain the accepted raw Responses and run snapshot. Calculation
+failures preserve their original message. Input changes invalidate both raw and
+presented results; stale jobs never reach presentation. There is no demo data.
+
+### Theme, canvas and export
+
+PreparedResults retains accepted Responses, metrics and the actual visualization
+API. Changing theme regenerates both Figures using that API's `theme` argument,
+without rerunning solvers or metrics. Current view, Responses and metrics remain.
+The owner defines actual curve colors: light Exact #475569 / Euler #FF1D8D /
+RK4 #2563EB; dark Exact #CBD5E1 / Euler #FF1D8D / RK4 #60A5FA. Approved UI
+indicator styling, layout, controls and QSettings behavior are preserved.
+
+Only one QtAgg canvas occupies the plot card. Replacement cancels the old
+canvas's pending QtAgg idle draw before detaching its Figure, closes/removes it,
+and schedules Qt deletion. Weak-reference tests check canvas, Figure, Response
+and worker release. The small `_draw_pending` integration depends on the current
+Matplotlib QtAgg backend; a regression checks against drawing a detached Figure.
+
+Choose Response or Error, then PNG or PDF. The native save dialog validates the
+extension, cancellation leaves the status unchanged, and an existing file needs
+explicit overwrite confirmation. The real owner exporter receives the current
+Figure. Success is reported only if the selected file exists and is nonempty.
+Errors stay in the status footer. Placeholder export is never enabled.
+
+### Validation and local evidence
+
+- Baseline updated main: **565 passed**. Final full
+  `.venv/Scripts/python.exe -m pytest -q`: **601 passed in 26.06 s**.
+- Real Run tests cover all seven nonempty method combinations across all three
+  Cases, exact sample/grid equality in plotted curves, real shared metrics,
+  absolute error curves, no hidden reference, and dt/dt2/dt4 convergence using
+  the original `0.1 * 2*pi/sqrt(a0)` starting step.
+- Theme tests check both owner palettes, preserved view/data/metrics, no solver
+  or metric rerun, released Figures and canvas objects, and theme failure.
+- Real PNG/PDF exports cover both views and themes. PNG images are decoded and
+  backgrounds checked; PDF header/EOF checked. Native verification additionally
+  parses all four PDFs with pypdf (already installed verification tool only).
+  Existing cancel/overwrite/error tests remain; empty exports cannot claim success.
+- Existing isolated startup, QSettings, sliders, overflow, invalid input recovery,
+  stale/change-back rejection, repeated runs, GUI heartbeat and safe deferred
+  close tests pass. A 100,001-sample real run checks worker heartbeat and retains
+  every plotted sample. No active solver wait is added to the GUI thread.
+- Native Windows `python tests/ui/native_smoke.py`: **PASS**, without traceback,
+  exercising actual windows, both themes/sizes, real curves/metrics, response/error
+  views, eight genuine exports, sliders/presets/Auto dt and close during work.
+  Only save destination selection is automated; production export is not mocked.
+- Visually inspected `.venv/ui-m4b2-{light,dark}-{1440x900,1000x740}.png`
+  and `.venv/ui-m4b2-{light,dark}-error-1000x740.png`: no clipped axes/legends,
+  overlapping controls, invisible text, white dark-mode patches or scrolling.
+  Local actual exports: `.venv/native-m4b2-{light,dark}-{0,1}.{png,pdf}`;
+  0=Response, 1=Error. These ignored runtime artifacts are not committed.
+- `git diff --check`: passed. Native automation/visual inspection does not claim
+  human desktop acceptance or native macOS/Linux verification.
+
+### Limits and M5 readiness (M5 not started)
+
+The existing one-million estimated sample budget bounds GUI figure work; every
+sample is preserved. Local real all-method timing at 1,000,000 samples: solve
+15.02 s in worker; figure building 0.168 s; drawing both Agg canvases 2.178 s.
+At 100,001 samples: 1.482 / 0.026 / 0.340 s respectively. Timing is machine- and
+backend-dependent. Figure construction, canvas draw and export are synchronous
+bounded GUI operations; maximum grids and high-resolution exports can briefly
+pause interaction. Solvers remain responsive in the worker. No claim of smooth
+maximum-size rendering or cancellation is made. Rendering offload would require
+a separate approved performance milestone and Matplotlib thread-safety review.
+
+No outstanding Person 4 API dependency remains. Before M5: team review/merge,
+human Windows acceptance of the frozen layout and export dialogs, review of
+upper-grid latency on target hardware, and an explicit M5 scope/approval.
+
+---
+
+# Historical M4B-1 record (superseded by M4B-2)
+
+## Historical milestone: M4B-1 — real Run and background execution
 
 Status: **COMPLETE for M4B-1**. Run Simulation now calculates actual shared
 Responses using the M4A controller in a background thread. Genuine response

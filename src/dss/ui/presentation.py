@@ -42,9 +42,10 @@ class PreparedResults:
     metrics: dict
     methods: tuple[str, ...]
     api: VisualizationAPI
+    responses: tuple
 
 
-def prepare_results(responses: list, api: VisualizationAPI | None = None) -> PreparedResults:
+def prepare_results(responses: list, api: VisualizationAPI | None = None, *, theme: str = "light") -> PreparedResults:
     """Validate genuine shared responses, then delegate all visual calculations."""
     import numpy as np
     from dss.contracts import ErrorMetrics, Response, validate_response
@@ -73,10 +74,21 @@ def prepare_results(responses: list, api: VisualizationAPI | None = None) -> Pre
             # at this public boundary in case an external producer bypassed init.
             ErrorMetrics(result.max_abs, result.rmse)
             metrics[candidate.method] = result
-    figure = api.build_response_figure(responses)
-    error = api.build_error_figure(reference, candidates) if reference is not None and candidates else None
+    return _build_figures(tuple(responses), metrics, methods, api, theme)
+
+
+def retheme_results(prepared: PreparedResults, theme: str) -> PreparedResults:
+    """Rebuild owner-styled figures without solving or recalculating metrics."""
+    return _build_figures(prepared.responses, prepared.metrics, prepared.methods, prepared.api, theme)
+
+
+def _build_figures(responses, metrics, methods, api, theme) -> PreparedResults:
+    reference = next((r for r in responses if r.method == "analytical"), None)
+    candidates = [r for r in responses if r.method != "analytical"]
+    figure = api.build_response_figure(responses, theme=theme)
+    error = api.build_error_figure(reference, candidates, theme=theme) if reference is not None and candidates else None
     if not isinstance(figure, Figure) or (error is not None and not isinstance(error, Figure)):
         raise ValueError("Visualization must return Matplotlib Figure objects.")
     if error is figure:
         raise ValueError("Response and error views must use distinct Figure objects.")
-    return PreparedResults(figure, error, metrics, methods, api)
+    return PreparedResults(figure, error, metrics, methods, api, responses)

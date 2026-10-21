@@ -53,12 +53,12 @@ def test_method_colors_and_development_copy(window):
     assert window.dt.readout.text() == "0.6283 s"
 
 
-def test_error_and_visualization_pending_status_are_distinct(window, wait_for):
+def test_error_and_success_status_are_distinct(window, wait_for):
     window.t_end.setText("invalid")
     assert window.status.property("state") == "error"
     window.t_end.setText("20")
     assert window.status.property("state") == "ready"
     window.run_button.click()
     wait_for(lambda: window._job is None)
-    assert window.status.property("state") == "notice"
-    assert "Visualization pending" in window.status.text()
+    assert window.status.property("state") == "ready"
+    assert "Results loaded" in window.status.text()

@@ -25,7 +25,7 @@ def responses():
 
 @pytest.fixture
 def api():
-    def figure(*args):
+    def figure(*args, **kwargs):
         result = Figure()
         result.text(0.5, 0.5, "TEST DOUBLE")
         return result
@@ -100,7 +100,7 @@ def test_wrong_metrics_and_figures_are_rejected(responses, api):
     wrong_metrics = VisualizationAPI(api.build_response_figure, api.build_error_figure, lambda *args: (0, 0), api.export_figure)
     with pytest.raises(ValueError, match="ErrorMetrics"):
         prepare_results(responses, wrong_metrics)
-    wrong_figure = VisualizationAPI(lambda *args: None, api.build_error_figure, api.compute_error, api.export_figure)
+    wrong_figure = VisualizationAPI(lambda *args, **kwargs: None, api.build_error_figure, api.compute_error, api.export_figure)
     with pytest.raises(ValueError, match="Figure"):
         prepare_results(responses, wrong_figure)
 
@@ -140,7 +140,8 @@ def test_theme_and_view_changes_do_not_invalidate_results(window, app, responses
         window.view_selector.setCurrentIndex(1)
         window.view_selector.setCurrentIndex(0)
         flush(app)
-        assert window.prepared_results is prepared
+        assert window.prepared_results.responses == prepared.responses
+        assert window.prepared_results.metrics is prepared.metrics
         assert window.export_png.isEnabled()
         assert len(window.plot_card.findChildren(FigureCanvasQTAgg)) == 1
 
