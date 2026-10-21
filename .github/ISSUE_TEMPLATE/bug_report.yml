@@ -1,0 +1,37 @@
+name: Bug report
+description: Report a reproducible problem in the simulator.
+title: "bug: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: "Use this form for reproducible problems. Do not include passwords, tokens, or private data."
+  - type: textarea
+    id: summary
+    attributes:
+      label: What happened?
+      description: Describe the problem and what you expected instead.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to reproduce
+      placeholder: "1. Select Case 2\n2. Choose Euler\n3. Run the simulation"
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      description: OS and Python version.
+      placeholder: macOS 15, Python 3.11
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Error output or screenshots
+      description: Remove secrets and personal information before sharing.
+    validations:
+      required: false

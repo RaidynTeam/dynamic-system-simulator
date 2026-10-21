@@ -56,9 +56,9 @@ py -3.11 -m venv .venv
 .\.venv\Scripts\python.exe -m dss
 ```
 
-macOS'ta bu çalışma alanı Qt dosyalarını gizli işaretleyebildiğinden uygulamayı
-her zaman proje klasöründen `./run.command` ile açın. Başlatıcı bu işareti
-çalıştırmadan önce otomatik düzeltir. Düzenli kullanım için doğrudan komutlar:
+macOS'ta bu çalışma alanı Qt dosyalarını gizli işaretleyebildiğinden, ilk
+çalıştırmadan önce Qt dosyalarının gizli işaretini temizleyin. Uygulamayı proje
+klasöründen şu komutlarla başlatın:
 
 ```sh
 /usr/bin/chflags -R nohidden .venv

@@ -1,0 +1,5 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Security vulnerability
+    url: https://github.com/RaidynTeam/dynamic-system-simulator/security/advisories/new
+    about: Report vulnerabilities privately; do not post them in a public issue.
