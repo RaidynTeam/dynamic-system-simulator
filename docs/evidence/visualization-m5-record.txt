@@ -24,19 +24,32 @@ Per file:
   test_styles.py           24 tests collected in 0.59s
 
 --- Delivered in M5 ---
-  English report contribution                retained outside the source repository
-  the locally retained visualization handoff notes      Delivery record
-  CONTRIBUTING.md                            Full team Git/PR rules
-  the locally retained visualization module notes              Final module notes
+  CONTRIBUTING.md             Full team Git/PR rules; in this repository.
+  Report contribution         Written for the shared report. The team later
+                              chose to keep report drafts out of the source
+                              repository, so it is no longer tracked here.
+  Module notes, handoff       Same: moved out of the repository with the rest
+                              of docs/modules. The measurements they cite are
+                              in docs/evidence, which is still tracked.
 
---- Still open ---
-  Person 3: dark-theme curve colour approval; M4B-2 integration;
-            single-source colour proposal for ui/colors.py
-  Person 2: sign-off on the step-halving experiment table
-  Team    : 5-6 screenshots from the real application, report merge,
-            RAR submission package
-  Me      : review Person 3's M4B-2 PR (none open at the time of writing)
+--- Status of the items this record first listed as open ---
+  Settled since:
+    Dark-theme curve colours  Adopted. prepare_results forwards the theme and
+                              the dark figures draw Exact #CBD5E1, Euler
+                              #FF1D8D, RK4 #60A5FA, as proposed. Verified by
+                              reading the colours back off the drawn lines.
+    M4B-2 integration         Delivered by Person 3 in PR #20.
 
-Every number quoted in the report comes from a script in this repository.
-Reproduce the measurements with tests/visualization/error_experiments.py
-and the figures with tests/visualization/preview.py --format both.
+  Still open:
+    Person 3  Single-source colours: ui/colors.py still carries its own copy
+              of the light values rather than importing dss.visualization.styles.
+    Person 2  No formal sign-off on the step-halving experiment table.
+    Team      5-6 screenshots from the real application, report merge, RAR
+              submission package.
+    Me        Person 3's M4B-2 work merged in PR #20 without a review from
+              me, so the review ring's Person 4 -> Person 3 step did not happen.
+
+Every number in this record, and every number the report contribution quotes,
+comes from a script in this repository. Reproduce the measurements with
+tests/visualization/error_experiments.py and the figures with
+tests/visualization/preview.py --format both.

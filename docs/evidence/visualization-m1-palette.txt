@@ -4,7 +4,7 @@ Date: 19 October 2026
 Measured, not estimated. Checks: OKLCH lightness band, chroma floor,
 colour-vision-deficiency separation (OKLab dE x100), normal-vision
 separation, and WCAG contrast of each curve against the chart surface.
-Surfaces are the UI card colours from the locally retained UI module notes.
+Surfaces are the UI card colours: #FFFFFF in light mode and #1E293B in dark.
 
 == LIGHT, surface #FFFFFF, agreed identities ==
 Palette (light, surface #FFFFFF, categorical): 3 slots
@@ -37,7 +37,7 @@ Reading of the results:
 - On the light card the agreed identities pass every check that applies.
 - On the dark card Exact #475569 reaches 1.93:1 and RK4 #2563EB 2.83:1,
   both under the 3:1 floor for non-text marks. This is the measurement
-  behind the dark-mode proposal in the locally retained visualization module notes.
+  behind the dark-mode variant this module ships.
 - The shipped dark variant clears 3:1 for all three and raises the worst
   adjacent CVD separation from 8.4 to 16.7.
 - The chroma-floor FAIL on the reference curve is deliberate: Exact is

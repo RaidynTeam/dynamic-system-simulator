@@ -20,9 +20,9 @@ No existing test was changed or removed.
   expected  max_abs=2.0  rmse=1.2909944487358056  (sqrt(5/3))
 
 --- Cross-check against Person 2's independent measurements ---
-Person 2 measured these maxima with their own script in
-the locally retained numerical handoff notes. Below is what compute_error reports for
-the same six scenarios, printed by tests/visualization/preview.py:
+Person 2 measured these maxima independently with their own script. Their
+figures are quoted below alongside what compute_error reports for the same six
+scenarios, printed by tests/visualization/preview.py:
 
 case1-h0-light             dt=0.628319 N=   33  Euler max=4.245663e-01  RK4 max=1.194006e-03
 case1-h0over32-light       dt=0.019635 N= 1020  Euler max=7.790842e-03  RK4 max=9.751568e-10
