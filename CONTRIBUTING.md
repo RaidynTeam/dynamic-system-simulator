@@ -118,8 +118,12 @@ QT_QPA_PLATFORM=offscreen MPLBACKEND=Agg python -m pytest -q
 ```
 
 - Use the Agg backend for plotting tests (`MPLBACKEND=Agg`).
-- CI runs on Windows with Python 3.11. Use the Python version specified by the
-  project configuration when running locally.
+- CI runs on Windows with Python 3.11, the version `.python-version` pins.
+- Do not use Python 3.12. PySide6 6.12.0's import hook fails on `six.moves`
+  there, so `tests/ui` cannot be collected and the application does not start
+  at all. This is not caused by the repository and reproduces on an unmodified
+  checkout; the one-line reproduction is
+  `python -c "import PySide6.QtWidgets; import matplotlib.dates"`.
 - Person 3 also performs an interactive test in a native desktop session.
 
 ## Milestone Completion
