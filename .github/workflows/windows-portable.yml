@@ -1,0 +1,39 @@
+name: Windows portable submission build
+
+on:
+  push:
+    branches: [feat/windows-submission-package]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  portable-windows:
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Build and verify portable EXE and source package
+        shell: powershell
+        run: ./tools/build_windows_submission.ps1
+      - name: Upload Windows submission staging ZIP
+        uses: actions/upload-artifact@v4
+        with:
+          name: CMPE443-Lab1-Windows-portable
+          path: dist/CMPE443_Lab1_RaidynTeam_Windows.zip
+          if-no-files-found: error
+          retention-days: 14
+      - name: Upload frozen acceptance evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Windows-frozen-acceptance
+          path: build/acceptance-*/
+          if-no-files-found: warn
+          retention-days: 14
