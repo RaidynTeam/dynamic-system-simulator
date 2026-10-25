@@ -204,6 +204,31 @@ The suite covers model validation, analytical solutions, numerical methods,
 plotting, error metrics, exports, and interface integration. GitHub Actions runs
 the tests on Windows with Python 3.11.
 
+## Windows Portable Executable
+
+The portable Windows build lets the instructor use the simulator without installing
+Python or dependencies. On Windows with Python 3.11, build and verify it with:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File tools/build_windows_submission.ps1
+```
+
+The script runs the test suite and native GUI smoke, builds a PyInstaller one-folder
+application, and checks real simulations and exports in both the build directory
+and a separate temporary copy. It creates
+`dist/CMPE443_Lab1_RaidynTeam_Windows/` and an intermediate ZIP beside it. Extract
+the entire package, open `Application`, and double-click
+`DynamicSystemSimulator.exe`; keep `_internal` beside the EXE.
+
+Alternatively, open the **Windows portable submission build** run in GitHub Actions
+and download **CMPE443-Lab1-Windows-portable** from its Artifacts section. Extract
+the downloaded artifact and then the staging ZIP it contains.
+
+Before submitting, include the actual team-approved final PDF in `Final-Report`,
+check the genuine screenshots in `Screenshots`, and create the required
+`CMPE443_Lab1_RaidynTeam_Final.rar` using WinRAR. A staging ZIP alone is not the
+final course submission. See [Windows submission instructions](docs/submission/WINDOWS-SUBMISSION.md).
+
 ## License
 
 This project is distributed under the [MIT License](LICENSE).
